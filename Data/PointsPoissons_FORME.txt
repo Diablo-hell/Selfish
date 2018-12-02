@@ -1,0 +1,22 @@
+n polygones
+X - Y - ... - ...[nfois]
+
+x sommets
+a1 - a2 - ...
+
+
+y sommets
+b1 - b2 - ...
+
+.........
+......
+
+........
+.....
+
+========> n fois
+
+
+Ici, j'ai marqué LG et HT pour LonG et HauT ; j'aurai les mêmes points pour tous les poissons de la meme sorte
+J'ai essayé de garder un nb de pts réduits : maxi 20, pour accélérer les calculs ;)
+On va voir ce que ça donne ! ça va collisionner !

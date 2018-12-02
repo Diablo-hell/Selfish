@@ -1,0 +1,2 @@
+ImgStatique 20
+ImgMouv 12

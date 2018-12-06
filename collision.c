@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <windows.h>
 #include <string.h>
 #include <math.h>
 
@@ -20,7 +21,7 @@ Tout ça engendre des variables pour :
         - un tableau genre "geomPoissons[2]" qui contiendra tout ça (les pos de base à la limite)
         - dans les variables Poissons, faudra créer une variable geomPoissons aussi qui regroupera la geom du poisson concerné ; cette dernière sera updatée avec adaptPolyy
 */
-void initPoly(Polygone geomPoisson[2])
+void initPoly(Polygone geomPoisson[2])//LGDROITE ET GAUCHE ...
 {
     int i=0;
     //Polygone pol_ABCDE,pol_FGHIJ;
@@ -170,14 +171,14 @@ int collisionPolyPolySimple(Poissons poisson_1,Poissons poisson_2)
 int colliAABB (Poissons poisson_1,Poissons poisson_2)
 {
     if( ( ((poisson_2.position.x>=poisson_1.position.x )
-       &&  (poisson_2.position.x<poisson_1.position.x+poisson_1.animsEntite[0].animation[0]->w))
+       &&  (poisson_2.position.x<poisson_1.position.x+poisson_1.animsEntite[0].animationGauche[0]->w))
        || ((poisson_2.position.x<poisson_1.position.x)
-       &&  (poisson_2.position.x+poisson_2.animsEntite[0].animation[0]->w>=poisson_1.position.x)))
+       &&  (poisson_2.position.x+poisson_2.animsEntite[0].animationGauche[0]->w>=poisson_1.position.x)))
        &&
        ( ((poisson_2.position.y>=poisson_1.position.y )
-       &&  (poisson_2.position.y<poisson_1.position.y+poisson_1.animsEntite[0].animation[0]->h))
+       &&  (poisson_2.position.y<poisson_1.position.y+poisson_1.animsEntite[0].animationGauche[0]->h))
        || ((poisson_2.position.y<poisson_1.position.y)
-       &&  (poisson_2.position.y+poisson_2.animsEntite[0].animation[0]->h>=poisson_1.position.y)))
+       &&  (poisson_2.position.y+poisson_2.animsEntite[0].animationGauche[0]->h>=poisson_1.position.y)))
       )
     {
         return 1;

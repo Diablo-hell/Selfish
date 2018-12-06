@@ -1,14 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
+#include <SDL/SDL_ttf.h>
 #include <time.h>
-
-#include "lib_local/SDL/SDL_rotozoom.h"
-#include "lib_local/FMOD/fmod.h"
-#include "lib_local/SDL/SDL_image.h"
-#include "lib_local/SDL/SDL_ttf.h"
-#include "lib_local/SDL/SDL.h"
-
-#include "lib_local/pthread/pthread.h"
+#include <SDL/SDL_rotozoom.h>
+#include <FMOD/fmod.h>
+#include <pthread.h>
 
 #include "variables.h"
 #include "jeu.h"
@@ -249,38 +247,38 @@ do
                             break;
 
                         case SDLK_LEFT:
-                            monAnim.mouvement[RECULE] = 1;
-                            if(monAnim.mouvement[AVANCE]==1)
+                            monAnim.mouvement[GAUCHE] = 1;
+                            if(monAnim.mouvement[DROITE]==1)
                             {
-                                monAnim.lastMouvement[AVANCE]=1;
-                                monAnim.mouvement[AVANCE]=0;
+                                monAnim.lastMouvement[DROITE]=1;
+                                monAnim.mouvement[DROITE]=0;
                             }
                             break;
 
                         case SDLK_RIGHT:
-                            monAnim.mouvement[AVANCE] = 1;
-                            if(monAnim.mouvement[RECULE]==1)
+                            monAnim.mouvement[DROITE] = 1;
+                            if(monAnim.mouvement[GAUCHE]==1)
                             {
-                                monAnim.lastMouvement[RECULE]=1;
-                                monAnim.mouvement[RECULE]=0;
+                                monAnim.lastMouvement[GAUCHE]=1;
+                                monAnim.mouvement[GAUCHE]=0;
                             }
                             break;
 
                         case SDLK_UP:
-                            monAnim.mouvement[MONTE] = 1;
-                            if(monAnim.mouvement[DESCEND]==1)
+                            monAnim.mouvement[HAUT] = 1;
+                            if(monAnim.mouvement[BAS]==1)
                             {
-                                monAnim.lastMouvement[DESCEND]=1;
-                                monAnim.mouvement[DESCEND]=0;
+                                monAnim.lastMouvement[BAS]=1;
+                                monAnim.mouvement[BAS]=0;
                             }
                             break;
 
                         case SDLK_DOWN:
-                            monAnim.mouvement[DESCEND] = 1;
-                            if(monAnim.mouvement[MONTE]==1)
+                            monAnim.mouvement[BAS] = 1;
+                            if(monAnim.mouvement[HAUT]==1)
                             {
-                                monAnim.lastMouvement[MONTE]=1;
-                                monAnim.mouvement[MONTE]=0;
+                                monAnim.lastMouvement[HAUT]=1;
+                                monAnim.mouvement[HAUT]=0;
                             }
                             break;
 
@@ -307,42 +305,42 @@ do
                     switch (event.key.keysym.sym)
                     {
                         case SDLK_LEFT:
-                            monAnim.mouvement[RECULE]=0;
-                            monAnim.lastMouvement[RECULE]=0;
-                            if(monAnim.lastMouvement[AVANCE]==1)
+                            monAnim.mouvement[GAUCHE]=0;
+                            monAnim.lastMouvement[GAUCHE]=0;
+                            if(monAnim.lastMouvement[DROITE]==1)
                             {
-                                monAnim.mouvement[AVANCE]=1;
-                                monAnim.lastMouvement[AVANCE]=0;
+                                monAnim.mouvement[DROITE]=1;
+                                monAnim.lastMouvement[DROITE]=0;
                             }
                             break;
 
                         case SDLK_RIGHT:
-                            monAnim.mouvement[AVANCE]=0;
-                            monAnim.lastMouvement[AVANCE]=0;
-                            if(monAnim.lastMouvement[RECULE]==1)
+                            monAnim.mouvement[DROITE]=0;
+                            monAnim.lastMouvement[DROITE]=0;
+                            if(monAnim.lastMouvement[GAUCHE]==1)
                             {
-                                monAnim.mouvement[RECULE]=1;
-                                monAnim.lastMouvement[RECULE]=0;
+                                monAnim.mouvement[GAUCHE]=1;
+                                monAnim.lastMouvement[GAUCHE]=0;
                             }
                             break;
 
                         case SDLK_UP:
-                            monAnim.mouvement[MONTE]=0;
-                            monAnim.lastMouvement[MONTE]=0;
-                            if(monAnim.lastMouvement[DESCEND]==1)
+                            monAnim.mouvement[HAUT]=0;
+                            monAnim.lastMouvement[HAUT]=0;
+                            if(monAnim.lastMouvement[BAS]==1)
                             {
-                                monAnim.mouvement[DESCEND]=1;
-                                monAnim.lastMouvement[DESCEND]=0;
+                                monAnim.mouvement[BAS]=1;
+                                monAnim.lastMouvement[BAS]=0;
                             }
                             break;
 
                         case SDLK_DOWN:
-                            monAnim.mouvement[DESCEND]=0;
-                            monAnim.lastMouvement[DESCEND]=0;
-                            if(monAnim.lastMouvement[MONTE]==1)
+                            monAnim.mouvement[BAS]=0;
+                            monAnim.lastMouvement[BAS]=0;
+                            if(monAnim.lastMouvement[HAUT]==1)
                             {
-                                monAnim.mouvement[MONTE]=1;
-                                monAnim.lastMouvement[MONTE]=0;
+                                monAnim.mouvement[HAUT]=1;
+                                monAnim.lastMouvement[HAUT]=0;
                             }
                             break;
 
@@ -389,17 +387,30 @@ do
             positionFond.y = 0;
 
             SDL_BlitSurface(fond, NULL, ecran, &positionFond);
-            SDL_BlitSurface(monAnim.animsEntite[monAnim.etat].animation[monAnim.animActuelle],NULL,ecran,&monAnim.position);
+            if(monAnim.orientation == GAUCHE)
+                SDL_BlitSurface(monAnim.animsEntite[monAnim.etat].animationGauche[monAnim.animActuelle],NULL,ecran,&monAnim.position);
+            else if(monAnim.orientation == DROITE)
+                SDL_BlitSurface(monAnim.animsEntite[monAnim.etat].animationDroite[monAnim.animActuelle],NULL,ecran,&monAnim.position);
+
             for(i=0;i<NB_ADVERSAIRES_MAX;i++)
             {
                 if(adversaires[i].vivant==1)
-                    SDL_BlitSurface(adversaires[i].animsEntite[adversaires[i].etat].animation[adversaires[i].animActuelle],NULL,ecran,&adversaires[i].position);
+                {
+                    if(adversaires[i].orientation == GAUCHE)
+                        SDL_BlitSurface(adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle],NULL,ecran,&adversaires[i].position);
+                    else if(adversaires[i].orientation == DROITE)
+                        SDL_BlitSurface(adversaires[i].animsEntite[adversaires[i].etat].animationDroite[adversaires[i].animActuelle],NULL,ecran,&adversaires[i].position);
+
+                }
                 else if (adversaires[i].vivantAvant==1 && adversaires[i].framesEffacement-10 > 0)
                 {
                     adversaires[i].framesEffacement-=10;//on commence à 255, donc ça passe puisque ce sera = à 0 à un moment car 8 est diviseur commun de 128
 
                     imgTemp=(SDL_Surface*)malloc(sizeof(SDL_Surface*));
-                    imgTemp = SDL_ConvertSurface(adversaires[i].animsEntite[adversaires[i].etat].animation[adversaires[i].animActuelle],adversaires[i].animsEntite[adversaires[i].etat].animation[adversaires[i].animActuelle]->format,adversaires[i].animsEntite[adversaires[i].etat].animation[adversaires[i].animActuelle]->flags);
+                    if(adversaires[i].orientation == GAUCHE)
+                        imgTemp = SDL_ConvertSurface(adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle],adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle]->format,adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle]->flags);
+                    else if(adversaires[i].orientation == DROITE)
+                        imgTemp = SDL_ConvertSurface(adversaires[i].animsEntite[adversaires[i].etat].animationDroite[adversaires[i].animActuelle],adversaires[i].animsEntite[adversaires[i].etat].animationDroite[adversaires[i].animActuelle]->format,adversaires[i].animsEntite[adversaires[i].etat].animationDroite[adversaires[i].animActuelle]->flags);
                     My_SetAlpha32(imgTemp,adversaires[i].framesEffacement);
                     SDL_BlitSurface(imgTemp,NULL,ecran,&adversaires[i].position);
                     SDL_FreeSurface(imgTemp);
@@ -593,14 +604,22 @@ if(SDL_GetTicks() > (checkTime + 1000 / fps) )
             for(i=0;i<NB_ADVERSAIRES_MAX;i++)
             {
                 if(adversaires[i].vivant==1)
-                    SDL_BlitSurface(adversaires[i].animsEntite[adversaires[i].etat].animation[adversaires[i].animActuelle],NULL,ecran,&adversaires[i].position);
+                {
+                    if(adversaires[i].orientation == GAUCHE)
+                        SDL_BlitSurface(adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle],NULL,ecran,&adversaires[i].position);
+                    else if(adversaires[i].orientation == DROITE)
+                        SDL_BlitSurface(adversaires[i].animsEntite[adversaires[i].etat].animationDroite[adversaires[i].animActuelle],NULL,ecran,&adversaires[i].position);
+
+                }
                 else if (adversaires[i].vivantAvant==1 && adversaires[i].framesEffacement-10 > 0)
                 {
                     adversaires[i].framesEffacement-=10;//on commence à 255, donc ça passe puisque ce sera = à 0 à un moment car 8 est diviseur commun de 128
 
                     imgTemp=(SDL_Surface*)malloc(sizeof(SDL_Surface*));
-                    imgTemp = SDL_ConvertSurface(adversaires[i].animsEntite[adversaires[i].etat].animation[adversaires[i].animActuelle],adversaires[i].animsEntite[adversaires[i].etat].animation[adversaires[i].animActuelle]->format,adversaires[i].animsEntite[adversaires[i].etat].animation[adversaires[i].animActuelle]->flags);
-                    //SDL_SetAlpha(imgTemp, SDL_SRCALPHA, adversaires[i].framesEffacement);
+                    if(adversaires[i].orientation == GAUCHE)
+                        imgTemp = SDL_ConvertSurface(adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle],adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle]->format,adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle]->flags);
+                    else if(adversaires[i].orientation == DROITE)
+                        imgTemp = SDL_ConvertSurface(adversaires[i].animsEntite[adversaires[i].etat].animationDroite[adversaires[i].animActuelle],adversaires[i].animsEntite[adversaires[i].etat].animationDroite[adversaires[i].animActuelle]->format,adversaires[i].animsEntite[adversaires[i].etat].animationDroite[adversaires[i].animActuelle]->flags);
                     My_SetAlpha32(imgTemp,adversaires[i].framesEffacement);
                     SDL_BlitSurface(imgTemp,NULL,ecran,&adversaires[i].position);
                     SDL_FreeSurface(imgTemp);
@@ -609,10 +628,15 @@ if(SDL_GetTicks() > (checkTime + 1000 / fps) )
                 {
                     printf("\n\t\t\tMOOOOOOOOOOOOOOOORT\n");
                     adversaires[i].vivantAvant=0;
+                    mesInfos.adversaires[i].vivantAvant = 0;
                 }
-
             }
-            SDL_BlitSurface(monAnim.animsEntite[monAnim.etat].animation[monAnim.animActuelle],NULL,ecran,&monAnim.position);
+
+            if(monAnim.orientation == GAUCHE)
+                SDL_BlitSurface(monAnim.animsEntite[monAnim.etat].animationGauche[monAnim.animActuelle],NULL,ecran,&monAnim.position);
+            else if(monAnim.orientation == DROITE)
+                SDL_BlitSurface(monAnim.animsEntite[monAnim.etat].animationDroite[monAnim.animActuelle],NULL,ecran,&monAnim.position);
+
 
             partieBarre.x = 0;
             partieBarre.y = 0;
@@ -739,7 +763,7 @@ if(SDL_GetTicks() > (checkTime + 1000 / fps) )
         printf("libéré !");
 
 
-        printf("taille : %d",sizeof monAnim.animsEntite[0].animation);
+        printf("taille : %d",sizeof monAnim.animsEntite[0].animationGauche);
 
     }
     else
@@ -805,7 +829,7 @@ if(SDL_GetTicks() > (checkTime + 1000 / fps) )
         {
             for(i=0;i<mesPoissonsBase[k].animPoissons[j].anims_totales;i++)
             {
-                SDL_FreeSurface(mesPoissonsBase[k].animPoissons[j].animation[i]);  //on libère
+                SDL_FreeSurface(mesPoissonsBase[k].animPoissons[j].animationGauche[i]);  //on libère
             }
         }
     }
@@ -1012,7 +1036,7 @@ int verification(Poissons *monAnim,Poissons adversaires[],AnimPoissons monPoisso
 
 void update(Poissons *monAnim)
 {
-    if(monAnim->mouvement[AVANCE] == 0 && monAnim->mouvement[RECULE] == 0 && monAnim->mouvement[DESCEND] == 0 && monAnim->mouvement[MONTE] == 0)
+    if(monAnim->mouvement[DROITE] == 0 && monAnim->mouvement[GAUCHE] == 0 && monAnim->mouvement[BAS] == 0 && monAnim->mouvement[HAUT] == 0)
     {
         if(monAnim->etat == BOUGE)
             monAnim->animActuelle=0;
@@ -1027,28 +1051,32 @@ void update(Poissons *monAnim)
     }
 
 
-    if(monAnim->mouvement[AVANCE]==1)
+    if(monAnim->mouvement[DROITE]==1)
     {
-        if(monAnim->position.x+monAnim->animsEntite[0].animation[0]->w+monAnim->vitesse+monAnim->mouvement[ACCELERE]<ECRAN_X)
+        if(monAnim->position.x+monAnim->animsEntite[0].animationGauche[0]->w+monAnim->vitesse+monAnim->mouvement[ACCELERE]<ECRAN_X)
             monAnim->position.x+=(monAnim->vitesse+monAnim->mouvement[ACCELERE]);
-        else if(monAnim->position.x+monAnim->animsEntite[0].animation[0]->w+monAnim->vitesse<ECRAN_X)
+        else if(monAnim->position.x+monAnim->animsEntite[0].animationGauche[0]->w+monAnim->vitesse<ECRAN_X)
             monAnim->position.x+=(monAnim->vitesse);
+
+        monAnim->orientation = DROITE;
     }
-    else if (monAnim->mouvement[RECULE]==1)
+    else if (monAnim->mouvement[GAUCHE]==1)
     {
         if(monAnim->position.x-monAnim->vitesse-monAnim->mouvement[ACCELERE]>0)
             monAnim->position.x-=(monAnim->vitesse+monAnim->mouvement[ACCELERE]);
         else if(monAnim->position.x-monAnim->vitesse>0)
             monAnim->position.x-=(monAnim->vitesse);
+
+        monAnim->orientation = GAUCHE;
     }
-    if(monAnim->mouvement[DESCEND]==1)
+    if(monAnim->mouvement[BAS]==1)
     {
-        if(monAnim->position.y+monAnim->animsEntite[0].animation[0]->h+monAnim->vitesse+monAnim->mouvement[ACCELERE]<ECRAN_Y)
+        if(monAnim->position.y+monAnim->animsEntite[0].animationGauche[0]->h+monAnim->vitesse+monAnim->mouvement[ACCELERE]<ECRAN_Y)
             monAnim->position.y+=(monAnim->vitesse+monAnim->mouvement[ACCELERE]);
-        else if(monAnim->position.y+monAnim->animsEntite[0].animation[0]->h+monAnim->vitesse<ECRAN_Y)
+        else if(monAnim->position.y+monAnim->animsEntite[0].animationGauche[0]->h+monAnim->vitesse<ECRAN_Y)
             monAnim->position.y+=(monAnim->vitesse);
     }
-    else if (monAnim->mouvement[MONTE]==1)
+    else if (monAnim->mouvement[HAUT]==1)
     {
         if(monAnim->position.y-monAnim->vitesse-monAnim->mouvement[ACCELERE]>0)
             monAnim->position.y-=(monAnim->vitesse+monAnim->mouvement[ACCELERE]);
@@ -1060,7 +1088,7 @@ void update(Poissons *monAnim)
 
 void updateAdv(Poissons *monAnim)
 {
-    if(monAnim->mouvement[AVANCE] == 0 && monAnim->mouvement[RECULE] == 0 && monAnim->mouvement[DESCEND] == 0 && monAnim->mouvement[MONTE] == 0)
+    if(monAnim->mouvement[DROITE] == 0 && monAnim->mouvement[GAUCHE] == 0 && monAnim->mouvement[BAS] == 0 && monAnim->mouvement[HAUT] == 0)
     {
         if(monAnim->etat == BOUGE)
             monAnim->animActuelle=0;
@@ -1075,19 +1103,21 @@ void updateAdv(Poissons *monAnim)
     }
 
 
-    if(monAnim->mouvement[AVANCE]==1)
+    if(monAnim->mouvement[DROITE]==1)
     {
-        if(monAnim->position.x+monAnim->animsEntite[0].animation[0]->w+monAnim->vitesse+monAnim->mouvement[ACCELERE]<ECRAN_X)
+        if(monAnim->position.x+monAnim->animsEntite[0].animationGauche[0]->w+monAnim->vitesse+monAnim->mouvement[ACCELERE]<ECRAN_X)
             monAnim->position.x+=(monAnim->vitesse+monAnim->mouvement[ACCELERE]);
-        else if(monAnim->position.x+monAnim->animsEntite[0].animation[0]->w+monAnim->vitesse<ECRAN_X)
+        else if(monAnim->position.x+monAnim->animsEntite[0].animationGauche[0]->w+monAnim->vitesse<ECRAN_X)
             monAnim->position.x+=(monAnim->vitesse);
         else
         {
-            monAnim->mouvement[AVANCE] = 0;
-            monAnim->mouvement[RECULE] = 1;
+            monAnim->mouvement[DROITE] = 0;
+            monAnim->mouvement[GAUCHE] = 1;
         }
+
+        monAnim->orientation = DROITE;
     }
-    else if (monAnim->mouvement[RECULE]==1)
+    else if (monAnim->mouvement[GAUCHE]==1)
     {
         if(monAnim->position.x-monAnim->vitesse-monAnim->mouvement[ACCELERE]>0)
             monAnim->position.x-=(monAnim->vitesse+monAnim->mouvement[ACCELERE]);
@@ -1095,23 +1125,25 @@ void updateAdv(Poissons *monAnim)
             monAnim->position.x-=(monAnim->vitesse);
         else
         {
-            monAnim->mouvement[AVANCE] = 1;
-            monAnim->mouvement[RECULE] = 0;
+            monAnim->mouvement[DROITE] = 1;
+            monAnim->mouvement[GAUCHE] = 0;
         }
+
+        monAnim->orientation = GAUCHE;
     }
-    if(monAnim->mouvement[DESCEND]==1)
+    if(monAnim->mouvement[BAS]==1)
     {
-        if(monAnim->position.y+monAnim->animsEntite[0].animation[0]->h+monAnim->vitesse+monAnim->mouvement[ACCELERE]<ECRAN_Y)
+        if(monAnim->position.y+monAnim->animsEntite[0].animationGauche[0]->h+monAnim->vitesse+monAnim->mouvement[ACCELERE]<ECRAN_Y)
             monAnim->position.y+=(monAnim->vitesse+monAnim->mouvement[ACCELERE]);
-        else if(monAnim->position.y+monAnim->animsEntite[0].animation[0]->h+monAnim->vitesse<ECRAN_Y)
+        else if(monAnim->position.y+monAnim->animsEntite[0].animationGauche[0]->h+monAnim->vitesse<ECRAN_Y)
             monAnim->position.y+=(monAnim->vitesse);
         else
         {
-            monAnim->mouvement[DESCEND] = 0;
-            monAnim->mouvement[MONTE] = 1;
+            monAnim->mouvement[BAS] = 0;
+            monAnim->mouvement[HAUT] = 1;
         }
     }
-    else if (monAnim->mouvement[MONTE]==1)
+    else if (monAnim->mouvement[HAUT]==1)
     {
         if(monAnim->position.y-monAnim->vitesse-monAnim->mouvement[ACCELERE]>0)
             monAnim->position.y-=(monAnim->vitesse+monAnim->mouvement[ACCELERE]);
@@ -1119,8 +1151,8 @@ void updateAdv(Poissons *monAnim)
             monAnim->position.y-=(monAnim->vitesse);
         else
         {
-            monAnim->mouvement[DESCEND] = 1;
-            monAnim->mouvement[MONTE] = 0;
+            monAnim->mouvement[BAS] = 1;
+            monAnim->mouvement[HAUT] = 0;
         }
     }
 
@@ -1142,18 +1174,18 @@ void changeDirection (Poissons *monAnim)
         switch(de)
         {
         case 0:
-            monAnim->mouvement[RECULE] = 1;
-            monAnim->mouvement[AVANCE] = 0;
+            monAnim->mouvement[GAUCHE] = 1;
+            monAnim->mouvement[DROITE] = 0;
             break;
 
         case 1:
-            monAnim->mouvement[AVANCE] = 1;
-            monAnim->mouvement[RECULE] = 0;//si ça fait 0, alors on recule _ si ça fait 1, il avance
+            monAnim->mouvement[DROITE] = 1;
+            monAnim->mouvement[GAUCHE] = 0;//si ça fait 0, alors on recule _ si ça fait 1, il avance
             break;
 
         case 2:
-            monAnim->mouvement[AVANCE] = 0;
-            monAnim->mouvement[RECULE] = 0;//si ça fait 2, alors on s'arrete => 1/3 de s'arreter ! on va voir ce que ça donne ...
+            monAnim->mouvement[DROITE] = 0;
+            monAnim->mouvement[GAUCHE] = 0;//si ça fait 2, alors on s'arrete => 1/3 de s'arreter ! on va voir ce que ça donne ...
             break;
 
         default:
@@ -1168,18 +1200,18 @@ void changeDirection (Poissons *monAnim)
         switch(de)
         {
         case 0:
-            monAnim->mouvement[MONTE] = 1;
-            monAnim->mouvement[DESCEND] = 0;
+            monAnim->mouvement[HAUT] = 1;
+            monAnim->mouvement[BAS] = 0;
             break;
 
         case 1:
-            monAnim->mouvement[MONTE] = 1;
-            monAnim->mouvement[DESCEND] = 0;//si ça fait 0, alors on recule _ si ça fait 1, il avance
+            monAnim->mouvement[HAUT] = 1;
+            monAnim->mouvement[BAS] = 0;//si ça fait 0, alors on recule _ si ça fait 1, il avance
             break;
 
         case 2:
-            monAnim->mouvement[MONTE] = 0;
-            monAnim->mouvement[DESCEND] = 0;//si ça fait 2, alors on s'arrete => 1/3 de s'arreter ! on va voir ce que ça donne ...
+            monAnim->mouvement[HAUT] = 0;
+            monAnim->mouvement[BAS] = 0;//si ça fait 2, alors on s'arrete => 1/3 de s'arreter ! on va voir ce que ça donne ...
             break;
 
         default:
@@ -1236,8 +1268,11 @@ void initAnim(AnimPoissons monPoisson[2/*ici, nb de sortes de poisson _ sera à 1
 
         }
         /**Alloue la mémoire à l'anim de base**/
-        monPoisson[sortePoisson].animPoissons[BOUGEPAS].animation = (SDL_Surface**)malloc(monPoisson[sortePoisson].animPoissons[BOUGEPAS].anims_totales * sizeof(SDL_Surface*));
-        monPoisson[sortePoisson].animPoissons[BOUGE].animation = (SDL_Surface**)malloc(monPoisson[sortePoisson].animPoissons[BOUGE].anims_totales * sizeof(SDL_Surface*));
+        monPoisson[sortePoisson].animPoissons[BOUGEPAS].animationGauche = (SDL_Surface**)malloc(monPoisson[sortePoisson].animPoissons[BOUGEPAS].anims_totales * sizeof(SDL_Surface*));
+        monPoisson[sortePoisson].animPoissons[BOUGE].animationGauche = (SDL_Surface**)malloc(monPoisson[sortePoisson].animPoissons[BOUGE].anims_totales * sizeof(SDL_Surface*));
+
+        monPoisson[sortePoisson].animPoissons[BOUGEPAS].animationDroite = (SDL_Surface**)malloc(monPoisson[sortePoisson].animPoissons[BOUGEPAS].anims_totales * sizeof(SDL_Surface*));
+        monPoisson[sortePoisson].animPoissons[BOUGE].animationDroite = (SDL_Surface**)malloc(monPoisson[sortePoisson].animPoissons[BOUGE].anims_totales * sizeof(SDL_Surface*));
 
         printf("\n\n\t\t\tchargeee\n");
 
@@ -1252,19 +1287,35 @@ void initAnim(AnimPoissons monPoisson[2/*ici, nb de sortes de poisson _ sera à 1
             for(i=0;i<monPoisson[sortePoisson].animPoissons[j].anims_totales;i++)
             {
                 if(j==BOUGEPAS)
-                    sprintf(nomImg, "Images/Poisson_%d/Poissons_bougePas/Poissons_bougePas_%d.png",sortePoisson,i);
+                    sprintf(nomImg, "Images/Poisson_%d/Poissons_bougePas_Gauche/Poissons_bougePas_%d.png",sortePoisson,i);
                 else
-                    sprintf(nomImg, "Images/Poisson_%d/Poissons_bouge/Poissons_bouge_%d.png",sortePoisson,i);
+                    sprintf(nomImg, "Images/Poisson_%d/Poissons_bouge_Gauche/Poissons_bouge_%d.png",sortePoisson,i);
 
                 printf("%s\n",nomImg);
                 imgTemp = IMG_Load(nomImg);
                 imgTemp = SDL_DisplayFormatAlpha(imgTemp);//on a le droit ??
-                monPoisson[sortePoisson].animPoissons[j].animation[i] = zoomSurface(imgTemp,ZOOM_X,ZOOM_Y,0);   //Mise à l'échelle
+                monPoisson[sortePoisson].animPoissons[j].animationGauche[i] = zoomSurface(imgTemp,ZOOM_X,ZOOM_Y,0);   //Mise à l'échelle
                 SDL_FreeSurface(imgTemp);
 
-                if(monPoisson[sortePoisson].animPoissons[j].animation[i] == NULL)
+                if(monPoisson[sortePoisson].animPoissons[j].animationGauche[i] == NULL)
                     printf("fail");
+            }
 
+            for(i=0;i<monPoisson[sortePoisson].animPoissons[j].anims_totales;i++)
+            {
+                if(j==BOUGEPAS)
+                    sprintf(nomImg, "Images/Poisson_%d/Poissons_bougePas_Droite/Poissons_bougePas_%d.png",sortePoisson,i);
+                else
+                    sprintf(nomImg, "Images/Poisson_%d/Poissons_bouge_Droite/Poissons_bouge_%d.png",sortePoisson,i);
+
+                printf("%s\n",nomImg);
+                imgTemp = IMG_Load(nomImg);
+                imgTemp = SDL_DisplayFormatAlpha(imgTemp);//on a le droit ??
+                monPoisson[sortePoisson].animPoissons[j].animationDroite[i] = zoomSurface(imgTemp,ZOOM_X,ZOOM_Y,0);   //Mise à l'échelle
+                SDL_FreeSurface(imgTemp);
+
+                if(monPoisson[sortePoisson].animPoissons[j].animationDroite[i] == NULL)
+                    printf("fail");
             }
         }
     }
@@ -1292,8 +1343,10 @@ void reinitAnimPoisson(Poissons *monAnim,AnimPoissons monPoisson[2],SDL_Surface 
 
 
     /**alloue la mémoire nécessaire**/
-    monAnim->animsEntite[BOUGEPAS].animation = (SDL_Surface**)malloc(monAnim->animsEntite[BOUGEPAS].anims_totales * sizeof(SDL_Surface*));
-    monAnim->animsEntite[BOUGE].animation = (SDL_Surface**)malloc(monAnim->animsEntite[BOUGE].anims_totales * sizeof(SDL_Surface*));
+    monAnim->animsEntite[BOUGEPAS].animationGauche = (SDL_Surface**)malloc(monAnim->animsEntite[BOUGEPAS].anims_totales * sizeof(SDL_Surface*));
+    monAnim->animsEntite[BOUGE].animationGauche = (SDL_Surface**)malloc(monAnim->animsEntite[BOUGE].anims_totales * sizeof(SDL_Surface*));
+    monAnim->animsEntite[BOUGEPAS].animationDroite = (SDL_Surface**)malloc(monAnim->animsEntite[BOUGEPAS].anims_totales * sizeof(SDL_Surface*));
+    monAnim->animsEntite[BOUGE].animationDroite = (SDL_Surface**)malloc(monAnim->animsEntite[BOUGE].anims_totales * sizeof(SDL_Surface*));
     printf("%d o alloués\n",monAnim->animsEntite[BOUGEPAS].anims_totales * sizeof(SDL_Surface*));
     printf("%d o alloués\n",monAnim->animsEntite[BOUGE].anims_totales * sizeof(SDL_Surface*));
 
@@ -1306,14 +1359,17 @@ void reinitAnimPoisson(Poissons *monAnim,AnimPoissons monPoisson[2],SDL_Surface 
     {
         for(i=0;i<monAnim->animsEntite[j].anims_totales;i++)
         {
-            monAnim->animsEntite[j].animation[i] = SDL_ConvertSurface(monPoisson[typePoisson].animPoissons[j].animation[i],monPoisson[typePoisson].animPoissons[j].animation[i]->format,monPoisson[typePoisson].animPoissons[j].animation[i]->flags);
-            SDL_BlitSurface(monPoisson[typePoisson].animPoissons[j].animation[i],NULL,monAnim->animsEntite[j].animation[i],NULL);
+            monAnim->animsEntite[j].animationGauche[i] = SDL_ConvertSurface(monPoisson[typePoisson].animPoissons[j].animationGauche[i],monPoisson[typePoisson].animPoissons[j].animationGauche[i]->format,monPoisson[typePoisson].animPoissons[j].animationGauche[i]->flags);
+            SDL_BlitSurface(monPoisson[typePoisson].animPoissons[j].animationGauche[i],NULL,monAnim->animsEntite[j].animationGauche[i],NULL);
+
+            monAnim->animsEntite[j].animationDroite[i] = SDL_ConvertSurface(monPoisson[typePoisson].animPoissons[j].animationDroite[i],monPoisson[typePoisson].animPoissons[j].animationDroite[i]->format,monPoisson[typePoisson].animPoissons[j].animationDroite[i]->flags);
+            SDL_BlitSurface(monPoisson[typePoisson].animPoissons[j].animationDroite[i],NULL,monAnim->animsEntite[j].animationDroite[i],NULL);
             //monAnim->animsEntite[j].animation[i] = (SDL_Surface*)zoomSurface(monAnim->animsEntite[j].animation[i],ZOOM_X,ZOOM_Y,0);  //on met à l'échelle
             //mise à l'échelle déjà effectuée !
         }
     }
 
-    if(monAnim->animsEntite[0].animation[0]==NULL)
+    if(monAnim->animsEntite[0].animationGauche[0]==NULL || monAnim->animsEntite[0].animationDroite[0]==NULL)
         printf("merde");
 
 
@@ -1375,10 +1431,14 @@ void spawnPoissons (Poissons *monAnim,AnimPoissons monPoisson[2],SDL_Surface *ec
         {
             for(i=0;i<monAnim->animsEntite[j].anims_totales;i++)
             {
-                SDL_FreeSurface(monAnim->animsEntite[j].animation[i]);  //on libère
-                monAnim->animsEntite[j].animation[i] = (SDL_Surface*)malloc(sizeof(SDL_Surface*));  //on réalloue de la mémoire
+                SDL_FreeSurface(monAnim->animsEntite[j].animationGauche[i]);  //on libère
+                SDL_FreeSurface(monAnim->animsEntite[j].animationDroite[i]);  //on libère
 
-                monAnim->animsEntite[j].animation[i] = zoomSurface(monPoisson[monAnim->typePoisson].animPoissons[j].animation[i],monAnim->grosseur,monAnim->grosseur,0);
+                monAnim->animsEntite[j].animationGauche[i] = (SDL_Surface*)malloc(sizeof(SDL_Surface*));  //on réalloue de la mémoire
+                monAnim->animsEntite[j].animationDroite[i] = (SDL_Surface*)malloc(sizeof(SDL_Surface*));  //on réalloue de la mémoire
+
+                monAnim->animsEntite[j].animationGauche[i] = zoomSurface(monPoisson[monAnim->typePoisson].animPoissons[j].animationGauche[i],monAnim->grosseur,monAnim->grosseur,0);
+                monAnim->animsEntite[j].animationDroite[i] = zoomSurface(monPoisson[monAnim->typePoisson].animPoissons[j].animationDroite[i],monAnim->grosseur,monAnim->grosseur,0);
             }
         }   //fait grossir l'anim :)
         /**OU**/
@@ -1388,11 +1448,11 @@ void spawnPoissons (Poissons *monAnim,AnimPoissons monPoisson[2],SDL_Surface *ec
 
         definirVitesse(monAnim);
         printf("vitesse : %d\n",monAnim->vitesse);
-        monAnim->rectangle = SDL_CreateRGBSurface(SDL_HWSURFACE, monAnim->animsEntite[0].animation[0]->w, monAnim->animsEntite[0].animation[0]->h, 32, 0, 0, 0, 0);
+        monAnim->rectangle = SDL_CreateRGBSurface(SDL_HWSURFACE, monAnim->animsEntite[0].animationGauche[0]->w, monAnim->animsEntite[0].animationGauche[0]->h, 32, 0, 0, 0, 0);
         SDL_FillRect(monAnim->rectangle, NULL, SDL_MapRGB(ecran->format, 255, 145, 7));
 
-        monAnim->position.x = ECRAN_X/2-monAnim->animsEntite[0].animation[0]->w/2;
-        monAnim->position.y = ECRAN_Y/2-monAnim->animsEntite[0].animation[0]->h/2;
+        monAnim->position.x = ECRAN_X/2-monAnim->animsEntite[0].animationGauche[0]->w/2;
+        monAnim->position.y = ECRAN_Y/2-monAnim->animsEntite[0].animationGauche[0]->h/2;
         monAnim->oldPos.x = monAnim->position.x;
         monAnim->oldPos.y = monAnim->position.y;
 
@@ -1413,10 +1473,14 @@ void spawnPoissons (Poissons *monAnim,AnimPoissons monPoisson[2],SDL_Surface *ec
         {
             for(i=0;i<monAnim->animsEntite[j].anims_totales;i++)
             {
-                SDL_FreeSurface(monAnim->animsEntite[j].animation[i]);  //on libère
-                monAnim->animsEntite[j].animation[i] = (SDL_Surface*)malloc(sizeof(SDL_Surface*));  //on réalloue de la mémoire
+                SDL_FreeSurface(monAnim->animsEntite[j].animationGauche[i]);  //on libère
+                SDL_FreeSurface(monAnim->animsEntite[j].animationDroite[i]);  //on libère
 
-                monAnim->animsEntite[j].animation[i] = zoomSurface(monPoisson[monAnim->typePoisson].animPoissons[j].animation[i],monAnim->grosseur,monAnim->grosseur,0);
+                monAnim->animsEntite[j].animationGauche[i] = (SDL_Surface*)malloc(sizeof(SDL_Surface*));  //on réalloue de la mémoire
+                monAnim->animsEntite[j].animationDroite[i] = (SDL_Surface*)malloc(sizeof(SDL_Surface*));  //on réalloue de la mémoire
+
+                monAnim->animsEntite[j].animationGauche[i] = zoomSurface(monPoisson[monAnim->typePoisson].animPoissons[j].animationGauche[i],monAnim->grosseur,monAnim->grosseur,0);
+                monAnim->animsEntite[j].animationDroite[i] = zoomSurface(monPoisson[monAnim->typePoisson].animPoissons[j].animationDroite[i],monAnim->grosseur,monAnim->grosseur,0);
             }
         }   //fait grossir l'anim :)
 
@@ -1432,22 +1496,22 @@ void spawnPoissons (Poissons *monAnim,AnimPoissons monPoisson[2],SDL_Surface *ec
         if (monAnim->vitesse==0)
             monAnim->vitesse=1;
 
-        monAnim->rectangle = SDL_CreateRGBSurface(SDL_HWSURFACE, monAnim->animsEntite[0].animation[0]->w, monAnim->animsEntite[0].animation[0]->h, 32, 0, 0, 0, 0);
+        monAnim->rectangle = SDL_CreateRGBSurface(SDL_HWSURFACE, monAnim->animsEntite[0].animationGauche[0]->w, monAnim->animsEntite[0].animationGauche[0]->h, 32, 0, 0, 0, 0);
         SDL_FillRect(monAnim->rectangle, NULL, SDL_MapRGB(ecran->format, 255, 145, 7));
 
         /**Position aléatoire**/
         if(rand()%2 == 0)   //1 chance sur 2 d'être à gauche
         {
             monAnim->position.x = 0;
-            monAnim->mouvement[AVANCE] = 1;
+            monAnim->mouvement[DROITE] = 1;
         }
         else                //1 chance sur 2 d'être à droite
         {
-            monAnim->position.x = ECRAN_X-monAnim->animsEntite[0].animation[0]->w;
-            monAnim->mouvement[RECULE] = 1;
+            monAnim->position.x = ECRAN_X-monAnim->animsEntite[0].animationGauche[0]->w;
+            monAnim->mouvement[GAUCHE] = 1;
         }
 
-        monAnim->position.y = (rand()%(ECRAN_Y-monAnim->animsEntite[0].animation[0]->h));
+        monAnim->position.y = (rand()%(ECRAN_Y-monAnim->animsEntite[0].animationGauche[0]->h+1)+1);
 
         monAnim->oldPos.x = monAnim->position.x;
         monAnim->oldPos.y = monAnim->position.y;
@@ -1474,13 +1538,16 @@ void FreeAnim(Poissons *monAnim)
     {
         for(i=0;i<monAnim->animsEntite[j].anims_totales;i++)
         {
-            SDL_FreeSurface(monAnim->animsEntite[j].animation[i]);  //on libère
+            SDL_FreeSurface(monAnim->animsEntite[j].animationGauche[i]);  //on libère
+            SDL_FreeSurface(monAnim->animsEntite[j].animationDroite[i]);  //on libère
         }
     }   //fait grossir l'anim :)
 
     SDL_FreeSurface(monAnim->rectangle);
-    free((void*)monAnim->animsEntite[0].animation);
-    free((void*)monAnim->animsEntite[1].animation);
+    free((void*)monAnim->animsEntite[0].animationGauche);
+    free((void*)monAnim->animsEntite[1].animationGauche);
+    free((void*)monAnim->animsEntite[0].animationDroite);
+    free((void*)monAnim->animsEntite[1].animationDroite);
 }
 
 

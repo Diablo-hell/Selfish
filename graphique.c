@@ -1,13 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
+#include <SDL/SDL_ttf.h>
 #include <time.h>
-
-#include "lib_local/SDL/SDL_rotozoom.h"
-#include "lib_local/FMOD/fmod.h"
-#include "lib_local/SDL/SDL_image.h"
-#include "lib_local/SDL/SDL_ttf.h"
-#include "lib_local/SDL/SDL.h"
-
+#include <SDL/SDL_rotozoom.h>
+#include <FMOD/fmod.h>
 
 #include "variables.h"
 #include "jeu.h"
@@ -47,10 +45,14 @@ void grossirPoisson(Poissons *monAnim,AnimPoissons monPoisson[2],int mange)
     {
         for(i=0;i<monAnim->animsEntite[j].anims_totales;i++)
         {
-            SDL_FreeSurface(monAnim->animsEntite[j].animation[i]);  //on libère
-            monAnim->animsEntite[j].animation[i] = (SDL_Surface*)malloc(sizeof(SDL_Surface*));  //on réalloue de la mémoire
+            SDL_FreeSurface(monAnim->animsEntite[j].animationGauche[i]);  //on libère
+            SDL_FreeSurface(monAnim->animsEntite[j].animationDroite[i]);  //on libère
 
-            monAnim->animsEntite[j].animation[i] = zoomSurface(monPoisson[monAnim->typePoisson].animPoissons[j].animation[i],monAnim->grosseur,monAnim->grosseur,0);
+            monAnim->animsEntite[j].animationGauche[i] = (SDL_Surface*)malloc(sizeof(SDL_Surface*));  //on réalloue de la mémoire
+            monAnim->animsEntite[j].animationDroite[i] = (SDL_Surface*)malloc(sizeof(SDL_Surface*));  //on réalloue de la mémoire
+
+            monAnim->animsEntite[j].animationGauche[i] = zoomSurface(monPoisson[monAnim->typePoisson].animPoissons[j].animationGauche[i],monAnim->grosseur,monAnim->grosseur,0);
+            monAnim->animsEntite[j].animationDroite[i] = zoomSurface(monPoisson[monAnim->typePoisson].animPoissons[j].animationDroite[i],monAnim->grosseur,monAnim->grosseur,0);
         }
     }
 }

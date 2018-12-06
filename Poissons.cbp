@@ -40,11 +40,11 @@
 			<Add library="gdi32" />
 			<Add library="winmm" />
 			<Add library="dxguid" />
-			<Add library="mingw32_local/libfmodex.a" />
-			<Add library="mingw32_local/SDL_image.lib" />
-			<Add library="mingw32_local/SDL_ttf.lib" />
-			<Add library="mingw32_local/sdlgfx.lib" />
-			<Add library="mingw32_local/WS2_32.LIB" />
+			<Add library="../../../../programmes/CodeBlocks/MinGW/mingw32/libfmodex.a" />
+			<Add library="../../../../programmes/CodeBlocks/MinGW/mingw32/SDL_image.lib" />
+			<Add library="../../../../programmes/CodeBlocks/MinGW/mingw32/SDL_ttf.lib" />
+			<Add library="../../../../programmes/CodeBlocks/MinGW/mingw32/sdlgfx.lib" />
+			<Add library="../../../../programmes/CodeBlocks/MinGW/mingw32/WS2_32.LIB" />
 			<Add directory="G:/programmes/CodeBlocks/MinGW/mingw32/SDL-1.2.15/lib" />
 		</Linker>
 		<Unit filename="accueil.c">

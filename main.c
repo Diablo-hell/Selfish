@@ -1,12 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
+#include <SDL/SDL_ttf.h>
 #include <time.h>
-
-#include "lib_local/SDL/SDL_rotozoom.h"
-#include "lib_local/FMOD/fmod.h"
-#include "lib_local/SDL/SDL_image.h"
-#include "lib_local/SDL/SDL_ttf.h"
-#include "lib_local/SDL/SDL.h"
+#include <SDL/SDL_rotozoom.h>
+#include <FMOD/fmod.h>
 
 #include "variables.h"
 #include "graphique.h"

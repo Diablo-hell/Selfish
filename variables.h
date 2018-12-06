@@ -15,7 +15,7 @@
 #define TAILLE_INITIALE 10
 #define TAUX_GROSSEUR 1.3
 
-#define SON_MUSIQUE 0.3
+#define SON_MUSIQUE 0.0
 
 #define NB_CHOIX 2
 
@@ -41,7 +41,7 @@ enum{LG_NOIR,LG_BLEU,LG_VERT,LG_VIOLET,LG_ROUGE,LG_JAUNE,
 enum{LG_NOIR=0,HT_BLEU=1};
 enum{POISSON_LG,POISSON_HT};
                             /***       LG = LonG _ HT = HauT        ___     12 sortes avec 6 Longs et 6 hauts    ***/
-enum{AVANCE,RECULE,DESCEND,MONTE,ACCELERE}; // mouvement[5]
+enum{DROITE,GAUCHE,BAS,HAUT,ACCELERE}; // mouvement[5]
 /*  AVANCE  = de gauche à droite
     RECULE  = de droite à gauche
     DESCEND = de haut en bas
@@ -89,7 +89,8 @@ struct Polygone
 typedef struct Anim Anim;
 struct Anim
 {
-    SDL_Surface **animation;
+    SDL_Surface **animationGauche;
+    SDL_Surface **animationDroite;
     int anims_totales;
 };
 typedef struct AnimPoissons AnimPoissons;
@@ -123,7 +124,8 @@ struct Poissons
     SDL_Surface *rectangle;
     SDL_Rect position;
     SDL_Rect oldPos;
-    Polygone polyPoisson;
+    //Polygone polyPoisson[2];//gauche et droite
+    Polygone polyPoisson;//gauche et droite
     double grosseur;
     int poids;
     int etat; // bouge ou pas
@@ -138,6 +140,7 @@ struct Poissons
     int vivantAvant;
     int framesEffacement;    //quand le poisson meurt, il s'efface (animation)
     int typePoisson;//utile pour le spawn();
+    int orientation;//GAUCHE ou DROITE ( utilisé pour déterminer l'anim à afficher)
 };
 
 typedef struct Audio Audio;

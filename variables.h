@@ -124,8 +124,7 @@ struct Poissons
     SDL_Surface *rectangle;
     SDL_Rect position;
     SDL_Rect oldPos;
-    //Polygone polyPoisson[2];//gauche et droite
-    Polygone polyPoisson;//gauche et droite
+    Polygone polyPoisson[2];//gauche et droite
     double grosseur;
     int poids;
     int etat; // bouge ou pas
@@ -160,7 +159,7 @@ struct Infos
     Poissons monAnim;
     Poissons *adversaires;
     AnimPoissons mesPoissonsBase[2];
-    Polygone polyBase[2];
+    Polygone polyBase[2][2];
     SDL_Surface *ecran;
     Audio *sons;
     int continuer;

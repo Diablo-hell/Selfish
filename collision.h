@@ -13,8 +13,8 @@ void calculVecteurEquaPoly (Polygone *poly);
 int collisionPolyPolySimple(Poissons poisson_1,Poissons poisson_2);
 int colliPolyPolySegments(Polygone poly_1,Polygone poly_2);
 void freePoly(Polygone *poly);
-void initPoly(Polygone geomPoisson[2]);
+void initPoly(Polygone geomPoisson[2],int direction);
 void attribuerPoly (Polygone geomPoisson[2],Polygone *poly,int type);
-void adaptPoly(Polygone geomPoisson[2],Polygone *poly,int type,double grosseur);
+void adaptPoly(Polygone geomPoisson[2][2],Polygone poly[2],int type,double grosseur);
 
 #endif // COLLISION_H_INCLUDED

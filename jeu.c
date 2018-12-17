@@ -31,7 +31,7 @@ void jeu(SDL_Surface *ecran,Audio *sons)
     SDL_Rect position,positionFond/*,clipper*/;
     SDL_Rect partieBarre;
 
-    Polygone polyBase[2];
+    Polygone polyBase[2][2];    //GAUCHE - LG/HT ____ DROITE - //
 
     /*clipper.x=0;
     clipper.y=0;
@@ -70,11 +70,16 @@ void jeu(SDL_Surface *ecran,Audio *sons)
     SDL_FillRect(bande, NULL, SDL_MapRGB(ecran->format, 174, 174, 174));
     SDL_SetAlpha(bande,SDL_SRCALPHA,(int)(0*255/100));//30% de transparence
 
-    initPoly(polyBase);
+    initPoly(polyBase[GAUCHE],GAUCHE);
+    initPoly(polyBase[DROITE],DROITE);
 
-    attribuerPoly(polyBase,&monAnim.polyPoisson,POISSON_LG);
+    attribuerPoly(polyBase[GAUCHE],&monAnim.polyPoisson[GAUCHE],POISSON_LG);
+    attribuerPoly(polyBase[DROITE],&monAnim.polyPoisson[DROITE],POISSON_LG);
     for(i=0;i<NB_ADVERSAIRES_MAX;i++)
-        attribuerPoly(polyBase,&adversaires[i].polyPoisson,POISSON_HT);
+    {
+        attribuerPoly(polyBase[GAUCHE],&adversaires[i].polyPoisson[GAUCHE],POISSON_HT);
+        attribuerPoly(polyBase[DROITE],&adversaires[i].polyPoisson[DROITE],POISSON_HT);
+    }
 /*
     printf("\n\n\n\tGEOMETRIE DE MON PICHON\n");
     afficherPts(monAnim.polyPoisson);*/
@@ -155,10 +160,12 @@ do
     spawnPoissons(&monAnim,mesPoissonsBase,ecran,monAnim.poids);
 
 
-    adaptPoly(polyBase,&monAnim.polyPoisson,POISSON_LG,monAnim.grosseur);
+    adaptPoly(polyBase,monAnim.polyPoisson,POISSON_LG,monAnim.grosseur);
     avance(&monAnim);
-    printf("\n\n\n\tGEOMETRIE DE MON PICHON\n");
-    afficherPts(monAnim.polyPoisson);
+    printf("\n\n\n\tGEOMETRIE DE MON PICHON GAUCHE\n");
+    afficherPts(monAnim.polyPoisson[GAUCHE]);
+    printf("\n\n\n\tGEOMETRIE DE MON PICHON DROITE\n");
+    afficherPts(monAnim.polyPoisson[DROITE]);
     //printf("Droite(,monAnim.polyPoisson.droites[i])
     mesInfos.adversaires = adversaires;
     mesInfos.continuer = continuer;
@@ -166,8 +173,13 @@ do
     mesInfos.mesPoissonsBase[0] = mesPoissonsBase[0];
     mesInfos.mesPoissonsBase[1] = mesPoissonsBase[1];
     mesInfos.monAnim = monAnim;
-    mesInfos.polyBase[0] = polyBase[0];
-    mesInfos.polyBase[1] = polyBase[1];
+    for(j=0;j<2;j++)
+    {
+        for(i=0;i<2;i++)
+        {
+            mesInfos.polyBase[j][i] = polyBase[j][i];
+        }
+    }
     mesInfos.sons = sons;
     mesInfos.pointsBoost = pointsBoost;
     mesInfos.boostTotal = boostTotal;
@@ -813,12 +825,16 @@ if(SDL_GetTicks() > (checkTime + 1000 / fps) )
     FMOD_Sound_Release(sons->meurt);
     FMOD_Sound_Release(sons->selection);
     printf("libéré !");
-    freePoly(polyBase);
+    for(j=0;j<2;j++)
+        for(i=0;i<2;i++)
+            freePoly(&polyBase[j][i]);
     printf("1");
-    freePoly(&monAnim.polyPoisson);
+    freePoly(&monAnim.polyPoisson[DROITE]);
+    freePoly(&monAnim.polyPoisson[GAUCHE]);
     printf("libéré !");
     for(i=0;i<NB_ADVERSAIRES_MAX;i++)
-        freePoly(&adversaires[i].polyPoisson);
+        for(j=0;j<2;j++)
+            freePoly(&adversaires[i].polyPoisson[j]);
 
     printf("libéré !");
 
@@ -878,7 +894,7 @@ void* boucle(void *infos)
                     {
                         printf("\t\tAJOUT de l'adversaire %d !\n",i);
                         spawnPoissons(&mesInfos->adversaires[i],mesInfos->mesPoissonsBase,mesInfos->ecran,mesInfos->monAnim.poids);
-                        adaptPoly(mesInfos->polyBase,&mesInfos->adversaires[i].polyPoisson,POISSON_HT,mesInfos->adversaires[i].grosseur);
+                        adaptPoly(mesInfos->polyBase,mesInfos->adversaires[i].polyPoisson,POISSON_HT,mesInfos->adversaires[i].grosseur);
                         ajoutAdversaire = 0;
                         break;
                     }
@@ -964,7 +980,7 @@ void* boucle(void *infos)
     return NULL;
 }
 
-int verification(Poissons *monAnim,Poissons adversaires[],AnimPoissons monPoisson[2],Polygone geomPoisson[2],SDL_Surface *ecran,Audio sons)
+int verification(Poissons *monAnim,Poissons adversaires[],AnimPoissons monPoisson[2],Polygone geomPoisson[2][2],SDL_Surface *ecran,Audio sons)
 {
     int i=0;
     int resultat=1;
@@ -984,7 +1000,6 @@ int verification(Poissons *monAnim,Poissons adversaires[],AnimPoissons monPoisso
 
             if(collisionPolyPolySimple(*monAnim,adversaires[i])==1)
             {
-
                 /*SDL_Delay(1000);
                 stop = 1;*/
                 if(monAnim->poids>adversaires[i].poids)
@@ -993,7 +1008,7 @@ int verification(Poissons *monAnim,Poissons adversaires[],AnimPoissons monPoisso
                     adversaires[i].vivantAvant=1;
 
                     grossirPoisson(monAnim,monPoisson,adversaires[i].poids);
-                    adaptPoly(geomPoisson,&monAnim->polyPoisson,POISSON_LG,monAnim->grosseur);
+                    adaptPoly(geomPoisson,monAnim->polyPoisson,POISSON_LG,monAnim->grosseur);
 
                     printf("\n\n\t\t\t%d < %d ==== mangé",monAnim->poids,adversaires[i].poids);
                     if(monAnim->poids>=POIDS_GAIN)
@@ -1421,7 +1436,7 @@ La fonction spwan doit :
 void spawnPoissons (Poissons *monAnim,AnimPoissons monPoisson[2],SDL_Surface *ecran,int taille)
 {
     int i=0,j=0;
-
+    monAnim->orientation = GAUCHE;
     if(monAnim->typePoisson == 0)   //poisson principal
     {
         monAnim->poids = TAILLE_INITIALE;//pour 0.3 : 30g (ouais g parce que j'avais la flemme de faire un truc logique xD)

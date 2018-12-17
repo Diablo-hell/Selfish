@@ -21,13 +21,17 @@ Tout ça engendre des variables pour :
         - un tableau genre "geomPoissons[2]" qui contiendra tout ça (les pos de base à la limite)
         - dans les variables Poissons, faudra créer une variable geomPoissons aussi qui regroupera la geom du poisson concerné ; cette dernière sera updatée avec adaptPolyy
 */
-void initPoly(Polygone geomPoisson[2])//LGDROITE ET GAUCHE ...
+void initPoly(Polygone geomPoisson[2],int direction)//LGDROITE ET GAUCHE ...
 {
     int i=0;
     //Polygone pol_ABCDE,pol_FGHIJ;
 
     FILE *fichier = NULL;
-    fichier = fopen("Data/PointsPoissons.txt","r");
+    if(direction==GAUCHE)
+        fichier = fopen("Data/PointsPoissonsGauche.txt","r");
+    else if(direction==DROITE)
+        fichier = fopen("Data/PointsPoissonsDroite.txt","r");
+
     if(fichier == NULL)
     {
         printf("Erreur de lecture du fichier !");
@@ -73,6 +77,8 @@ void initPoly(Polygone geomPoisson[2])//LGDROITE ET GAUCHE ...
         //printf("sommet %d : %f;%f\n",i,pol_FGHIJ.sommet[i].x,pol_FGHIJ.sommet[i].y);
     }
 
+    fclose(fichier);
+
     printf("calcul des eq de droites ...\n");
 
 
@@ -88,29 +94,32 @@ void initPoly(Polygone geomPoisson[2])//LGDROITE ET GAUCHE ...
 Pour quand un pichon grandit, on réadapte les points (position des pts proportionnelle) MAIS PAS LES DROITES D'EQUATION (elles ne changent pas !)
 La fonction sera appelée pour les adv aussi bien que pour le poisson principal ! :p
 */
-void adaptPoly(Polygone geomPoisson[2],Polygone *poly,int type,double grosseur)
+void adaptPoly(Polygone geomPoisson[2][2],Polygone poly[2],int type,double grosseur)
 {
-    int i=0;
-    for(i=0;i<poly->nbPoints;i++)
+    int i=0,j=0;
+    for(j=0;j<2;j++)//GAUCHE - DROITE
     {
-        poly->sommet[i].x = (int)(geomPoisson[type].sommet[i].x * grosseur);
-        poly->sommet[i].y = (int)(geomPoisson[type].sommet[i].y * grosseur);
-        poly->sommetBase[i].x = poly->sommet[i].x;
-        poly->sommetBase[i].y = poly->sommet[i].y;
-    }
-    calculVecteurEquaPoly(poly);
+        for(i=0;i<poly[j].nbPoints;i++)
+        {
+            poly[j].sommet[i].x = (int)(geomPoisson[j][type].sommet[i].x * grosseur);
+            poly[j].sommet[i].y = (int)(geomPoisson[j][type].sommet[i].y * grosseur);
+            poly[j].sommetBase[i].x = poly[j].sommet[i].x;
+            poly[j].sommetBase[i].y = poly[j].sommet[i].y;
+        }
+        calculVecteurEquaPoly(&poly[j]);
 
 
-    for(i=0;i<poly->nbPoints;i++)
-    {
-        poly->droitesBase[i].a = poly->droites[i].a;
-        poly->droitesBase[i].A.x = poly->droites[i].A.x;
-        poly->droitesBase[i].A.y = poly->droites[i].A.y;
-        poly->droitesBase[i].B.x = poly->droites[i].B.x;
-        poly->droitesBase[i].B.y = poly->droites[i].B.y;
-        poly->droitesBase[i].b = poly->droites[i].b;
-        poly->droitesBase[i].x = poly->droites[i].x;
-        poly->droitesBase[i].verticale = poly->droites[i].verticale;
+        for(i=0;i<poly[j].nbPoints;i++)
+        {
+            poly[j].droitesBase[i].a = poly[j].droites[i].a;
+            poly[j].droitesBase[i].A.x = poly[j].droites[i].A.x;
+            poly[j].droitesBase[i].A.y = poly[j].droites[i].A.y;
+            poly[j].droitesBase[i].B.x = poly[j].droites[i].B.x;
+            poly[j].droitesBase[i].B.y = poly[j].droites[i].B.y;
+            poly[j].droitesBase[i].b = poly[j].droites[i].b;
+            poly[j].droitesBase[i].x = poly[j].droites[i].x;
+            poly[j].droitesBase[i].verticale = poly[j].droites[i].verticale;
+        }
     }
 }
 
@@ -148,12 +157,12 @@ int collisionPolyPolySimple(Poissons poisson_1,Poissons poisson_2)
 {
     if(colliAABB(poisson_1,poisson_2))
     {
-        //printf("\tcolli AABB !\n");
+        printf("\tcolli AABB !\n");
         //return 1;
         if(poisson_2.grosseur<0.1)  //si le poisson est trop petit, pas besoin de chercher la colli polyPolySegments
             return 1;
 
-        if(colliPolyPolySegments(poisson_1.polyPoisson,poisson_2.polyPoisson))
+        if(colliPolyPolySegments(poisson_1.polyPoisson[poisson_1.orientation],poisson_2.polyPoisson[poisson_2.orientation]))
         {
             printf("\tcolli Segments !\n");
             return 1;
@@ -206,20 +215,23 @@ int colliPolyPolySegments(Polygone poly_1,Polygone poly_2)
 
 void avance (Poissons *monPoisson)
 {
-    int i=0;
+    int i=0,j=0;
     //printf("\n\t\tdeplacement en %d en X et %d en Y !!",deplacement.x,deplacement.y);
-    for(i=0;i<monPoisson->polyPoisson.nbPoints;i++)
+    for(j=0;j<2;j++)
     {
-        monPoisson->polyPoisson.sommet[i].x = (int)(monPoisson->position.x + monPoisson->polyPoisson.sommetBase[i].x);
-        monPoisson->polyPoisson.sommet[i].y = (int)(monPoisson->position.y + monPoisson->polyPoisson.sommetBase[i].y);
-        monPoisson->polyPoisson.droites[i].A.x = (int)(monPoisson->position.x + monPoisson->polyPoisson.droitesBase[i].A.x);
-        monPoisson->polyPoisson.droites[i].A.y = (int)(monPoisson->position.y + monPoisson->polyPoisson.droitesBase[i].A.y);
-        monPoisson->polyPoisson.droites[i].B.x = (int)(monPoisson->position.x + monPoisson->polyPoisson.droitesBase[i].B.x);
-        monPoisson->polyPoisson.droites[i].B.y = (int)(monPoisson->position.y + monPoisson->polyPoisson.droitesBase[i].B.y);
-        if(monPoisson->polyPoisson.droites[i].verticale == 1)
-            monPoisson->polyPoisson.droites[i].x = (int)(monPoisson->position.x + monPoisson->polyPoisson.droitesBase[i].x);
+        for(i=0;i<monPoisson->polyPoisson[j].nbPoints;i++)
+        {
+            monPoisson->polyPoisson[j].sommet[i].x = (int)(monPoisson->position.x + monPoisson->polyPoisson[j].sommetBase[i].x);
+            monPoisson->polyPoisson[j].sommet[i].y = (int)(monPoisson->position.y + monPoisson->polyPoisson[j].sommetBase[i].y);
+            monPoisson->polyPoisson[j].droites[i].A.x = (int)(monPoisson->position.x + monPoisson->polyPoisson[j].droitesBase[i].A.x);
+            monPoisson->polyPoisson[j].droites[i].A.y = (int)(monPoisson->position.y + monPoisson->polyPoisson[j].droitesBase[i].A.y);
+            monPoisson->polyPoisson[j].droites[i].B.x = (int)(monPoisson->position.x + monPoisson->polyPoisson[j].droitesBase[i].B.x);
+            monPoisson->polyPoisson[j].droites[i].B.y = (int)(monPoisson->position.y + monPoisson->polyPoisson[j].droitesBase[i].B.y);
+            if(monPoisson->polyPoisson[j].droites[i].verticale == 1)
+                monPoisson->polyPoisson[j].droites[i].x = (int)(monPoisson->position.x + monPoisson->polyPoisson[j].droitesBase[i].x);
 
-        calculEquationDroite(&monPoisson->polyPoisson.droites[i]);
+            calculEquationDroite(&monPoisson->polyPoisson[j].droites[i]);
+        }
     }
 }
 

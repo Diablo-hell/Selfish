@@ -27,14 +27,20 @@ int main(int argc, char *argv[])
 
     ECRAN_X = vidinfo->current_w;
     ECRAN_Y = vidinfo->current_h;
+    resolutionX=ECRAN_X;
+    resolutionY=ECRAN_Y;
 
     if(etatEcran==FENETRE)//
-    {
+    {/*
         ECRAN_X/=2;
-        ECRAN_Y/=2;
+        ECRAN_Y/=2;*/
+        ECRAN_X=1296;
+        ECRAN_Y=729;
     }
     ZOOM_X = (double)ECRAN_X/1920;
     ZOOM_Y = (double)ECRAN_Y/1080;
+    ZOOM_X = 1.0;
+    ZOOM_Y = 1.0;
 
     FMOD_System_Create(&sons.system);
     FMOD_System_Init(sons.system, 8, FMOD_INIT_NORMAL, NULL);

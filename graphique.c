@@ -17,6 +17,7 @@ void grossirPoisson(Poissons *monAnim,AnimPoissons monPoisson[2],int mange);
 void grossirPoisson(Poissons *monAnim,AnimPoissons monPoisson[2],int mange)
 {
     int j=0,i=0;
+    double ratio=0.0;
 
     if(mange<=10)
         mange = 1;
@@ -36,10 +37,29 @@ void grossirPoisson(Poissons *monAnim,AnimPoissons monPoisson[2],int mange)
         mange = 15;
 
     printf("\n\tcalcul du poids ...\t ");
+    ratio = ((double)(monAnim->poids+mange)/(double)monAnim->poids)-1;//fera 1 si la taille double
     monAnim->poids += mange;
     monAnim->grosseur = (double)(monAnim->poids)/100;
     printf("grosseur : %f (= %d/%d)",monAnim->grosseur,monAnim->poids,100);
     definirVitesse(monAnim);
+    printf("\nancienne pos : %d;%d\t\t",monAnim->position.x,monAnim->position.y);
+    monAnim->position.x-=(int)(monAnim->animsEntite[0].animationDroite[0]->w*ratio/2);
+    monAnim->position.y-=(int)(monAnim->animsEntite[0].animationDroite[0]->h*ratio/2);
+
+    printf("ratio fattitude : %f _ pos nouvelles : %d;%d",ratio,monAnim->position.x,monAnim->position.y);
+    /*Quand le poisson grossit, il prend du volume sur sa droite et sur sa gauche, proportionnellement au poinds qu'il a pris.
+    Il faut ainsi recalculer sa position.
+    S'il double de volume, il prendra ainsi taille*1/2 de chaque côté, donc on pourra enlever taille/2 sur sa position.
+    S'il triple de volume, il prendra ainsi taille*2/2 de chaque côté, donc on pourra enlever taille/2 sur sa position.
+    S'il quadruple de volume, il prendra... taille*3/2 de chaque côté, donc on pourra enlever taille   sur sa position.
+    ===> proportionnalité !
+
+            position-=taille*4/ratioPoidsPris
+
+    ratio se calcule en faisant :
+
+            ratio = poidsAprès/poidsAvant
+    */
 
     for(j=0;j<2;j++)
     {

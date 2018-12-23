@@ -4,7 +4,7 @@
 #define FPS 60
 #define DELAI 10    //en ms, c'est en attendant que les FPS marchent xD
 
-#define NB_ADVERSAIRES_MAX 7
+#define NB_ADVERSAIRES_MAX 20
 
 //#define VITESSE_MAX 4
 #define VITESSE_PETIT 1
@@ -12,8 +12,8 @@
 #define VITESSE_GRAND 3
 
 #define POIDS_GAIN 120
-#define TAILLE_INITIALE 10
-#define TAUX_GROSSEUR 1.3
+#define TAILLE_INITIALE 30
+#define TAUX_GROSSEUR 1.0
 
 #define SON_MUSIQUE 0.0
 
@@ -31,7 +31,9 @@
 enum{FENETRE,FULLSCREEN};
 
 int ECRAN_X,ECRAN_Y;
+int resolutionX,resolutionY;
 double ZOOM_X,ZOOM_Y;
+int xMap,yMap;
 int etatEcran;
 const SDL_VideoInfo* vidinfo;
 
@@ -164,7 +166,8 @@ struct Infos
     Audio *sons;
     int continuer;
     int pointsBoost,boostTotal,consoBoost,regenBoost,boostActif;
-
+    int xscroll,yscroll;
+    SDL_Surface *fond;
 };
 
 #endif // VARIABLES_H_INCLUDED

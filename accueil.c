@@ -104,22 +104,23 @@ void menu (SDL_Surface *ecran,Audio *sons)
                                 if(etatEcran==FENETRE)
                                 {
                                     etatEcran=FULLSCREEN;
-                                    ECRAN_X*=2;
-                                    ECRAN_Y*=2;
+                                    ECRAN_X = resolutionX;
+                                    ECRAN_Y = resolutionY;
+                                    ZOOM_X = (double)ECRAN_X/1296;
+                                    ZOOM_Y = (double)ECRAN_Y/729;
                                 }
                                 else if (etatEcran==FULLSCREEN)
                                 {
                                     etatEcran=FENETRE;
-                                    ECRAN_X/=2;
-                                    ECRAN_Y/=2;
+                                    ECRAN_X=1296;
+                                    ECRAN_Y=729;
+                                    ZOOM_X = 1.0;
+                                    ZOOM_Y = 1.0;
                                 }
 
-                                ZOOM_X = (double)ECRAN_X/1920;
-                                ZOOM_Y = (double)ECRAN_Y/1080;
 
                                 printf("X = %d et Y = %d\n",ECRAN_X,ECRAN_Y);
 
-                                ZOOM_X = (double)ECRAN_X/1920;
 
                                 Uint32 flags = (ecran->flags^SDL_FULLSCREEN);
                                 SDL_FreeSurface(ecran);
@@ -181,7 +182,7 @@ void affichageMenu (SDL_Surface *ecran,SDL_Surface *fond,TTF_Font *police,SDL_Co
 
     if(mvmt==0)
     {
-        distance = 6*ZOOM_X;
+        distance = 3*ZOOM_X;
         mvmt=distance;
         oldSelect=selection;
     }

@@ -139,16 +139,20 @@ void attribuerPoly (Polygone geomPoisson[2],Polygone *poly,int type)
 
     poly->sommet = malloc(poly->nbPoints * sizeof(Point));
     poly->droites = malloc(poly->nbPoints * sizeof(EqDroite));
+
     poly->sommetBase = malloc(poly->nbPoints * sizeof(Point));
     poly->droitesBase = malloc(poly->nbPoints * sizeof(EqDroite));
 
     printf("\nfction atrribuerPoly : taille allouée !");
 }
 
-void freePoly(Polygone *poly)
+void freePoly(Polygone *poly,int polybase)
 {
-    free(poly->droitesBase);
-    free(poly->sommetBase);
+    if(polybase==0)
+    {
+        free(poly->droitesBase);
+        free(poly->sommetBase);
+    }
     free(poly->droites);
     free(poly->sommet);
 }
@@ -157,7 +161,7 @@ int collisionPolyPolySimple(Poissons poisson_1,Poissons poisson_2)
 {
     if(colliAABB(poisson_1,poisson_2))
     {
-        printf("\tcolli AABB !\n");
+        //printf("\tcolli AABB !\n");
         //return 1;
         if(poisson_2.grosseur<0.1)  //si le poisson est trop petit, pas besoin de chercher la colli polyPolySegments
             return 1;
@@ -195,6 +199,23 @@ int colliAABB (Poissons poisson_1,Poissons poisson_2)
     return 0;
 }
 
+int colliAABBSurfaces (SDL_Rect surf1,SDL_Rect surf2)
+{
+    if( ( ((surf2.x>=surf1.x )
+       &&  (surf2.x<surf1.x+surf1.w))
+       || ((surf2.x<surf1.x)
+       &&  (surf2.x+surf2.w>=surf1.x)))
+       &&
+       ( ((surf2.y>=surf1.y )
+       &&  (surf2.y<surf1.y+surf1.h))
+       || ((surf2.y<surf1.y)
+       &&  (surf2.y+surf2.h>=surf1.y)))
+      )
+    {
+        return 1;
+    }
+    return 0;
+}
 int colliPolyPolySegments(Polygone poly_1,Polygone poly_2)
 {
     int i,j;

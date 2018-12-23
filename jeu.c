@@ -20,8 +20,9 @@ void jeu(SDL_Surface *ecran,Audio *sons)
     int tempsDepart = 0,tempsActuel=0; //pour les fps
     int i=0,j=0,k=0;
     int descente = 0;
-    int boostTotal = 300,pointsBoost = boostTotal,consoBoost = 3,regenBoost = 2,boostActif = 0;
+    int boostTotal = 300,pointsBoost = boostTotal,consoBoost = 1,regenBoost = 2,boostActif = 0;
 
+    int xscroll,yscroll;
     char score[100],message[100];
 
 
@@ -30,6 +31,7 @@ void jeu(SDL_Surface *ecran,Audio *sons)
     SDL_Color couleur[3];
     SDL_Rect position,positionFond/*,clipper*/;
     SDL_Rect partieBarre;
+    SDL_Rect posDest,posTemp;
 
     Polygone polyBase[2][2];    //GAUCHE - LG/HT ____ DROITE - //
 
@@ -59,7 +61,7 @@ void jeu(SDL_Surface *ecran,Audio *sons)
 
     /**INITIALISATION**/
 
-    fond=IMG_Load("Images/fond.jpg");
+    fond=IMG_Load("Images/fond.png");
     temp=SDL_DisplayFormat(fond);
     SDL_FreeSurface(fond);
     fond=temp;
@@ -118,6 +120,13 @@ void jeu(SDL_Surface *ecran,Audio *sons)
 
     Infos mesInfos;
 
+    posDest.x=0;
+    posDest.y=0;
+    posDest.w=ECRAN_X;
+    posDest.h=ECRAN_Y;
+
+    xMap=fond->w;
+    yMap=fond->h;
 
 
     pthread_t thread_boucle;// On crée un thread
@@ -145,6 +154,10 @@ do
     boostTotal = 300;
     pointsBoost=boostTotal;
     boostActif=0;
+    xscroll=fond->w/2-ECRAN_X/2;
+    yscroll=fond->h/2-ECRAN_Y/2;
+    posDest.x=xscroll;
+    posDest.y=yscroll;
 
     police = TTF_OpenFont("Police/acme.ttf", 45*ZOOM_X);
     policePetite = TTF_OpenFont("Police/acme.ttf", 20*ZOOM_X);
@@ -186,6 +199,9 @@ do
     mesInfos.consoBoost = consoBoost;
     mesInfos.regenBoost = regenBoost;
     mesInfos.boostActif = boostActif;
+    mesInfos.xscroll=xscroll;
+    mesInfos.yscroll=yscroll;
+    mesInfos.fond=fond;
     printf("\npassoire");
 
     pthread_create(&thread_boucle, NULL, boucle, (void*)&mesInfos);// Permet d'exécuter le fonction maFonction en parallèle
@@ -380,43 +396,100 @@ do
             mesInfos.monAnim.lastMouvement[i] = monAnim.lastMouvement[i];
         }
 
-            adversaires = mesInfos.adversaires;
-            monAnim = mesInfos.monAnim;
-            continuer = mesInfos.continuer;
-            ecran = mesInfos.ecran;
-            pointsBoost = mesInfos.pointsBoost;
-            mesInfos.boostActif = boostActif;
+        adversaires = mesInfos.adversaires;
+        monAnim = mesInfos.monAnim;
+        continuer = mesInfos.continuer;
+        ecran = mesInfos.ecran;
+        pointsBoost = mesInfos.pointsBoost;
+        mesInfos.boostActif = boostActif;
+        xscroll=mesInfos.xscroll;
+        yscroll=mesInfos.yscroll;
 
-            if(pointsBoost>0 && boostActif==1)
-                monAnim.mouvement[ACCELERE] = monAnim.vitesse*1.6;//ici, 1.6 est le boost :p
-            else
-                monAnim.mouvement[ACCELERE] = 0;
+        if(pointsBoost>0 && boostActif==1)
+            monAnim.mouvement[ACCELERE] = monAnim.vitesse*3.6;//ici, 1.6 est le boost :p
+        else
+            monAnim.mouvement[ACCELERE] = 0;
 
-            sprintf(score, "Fattitude : %d / %d",monAnim.poids,POIDS_GAIN);
-            texte[0] = TTF_RenderText_Blended(police, score, couleur[BLANC]);
+        sprintf(score, "Fattitude : %d / %d",monAnim.poids,POIDS_GAIN);
+        texte[0] = TTF_RenderText_Blended(police, score, couleur[BLANC]);
+/*
+        if(xscroll>0&&xscroll<xMap-ECRAN_X)
+            position.x=ECRAN_X/2-monAnim.animsEntite[monAnim.etat].animationGauche[0]->w/2;
+        else if(xscroll>=xMap-ECRAN_X)
+            position.x=monAnim.position.x-xscroll;//position locale = pGlobale - xscroll
+        else
+            position.x=monAnim.position.x;
+        if(yscroll>0&&yscroll<yMap-ECRAN_Y)
+            position.y=ECRAN_Y/2-monAnim.animsEntite[monAnim.etat].animationGauche[0]->h/2;
+        else if(yscroll==yMap-ECRAN_Y)
+            position.y=monAnim.position.y-yscroll;
+        else
+            position.y=monAnim.position.y;*/
 
-            positionFond.x = 0;
-            positionFond.y = 0;
 
-            SDL_BlitSurface(fond, NULL, ecran, &positionFond);
-            if(monAnim.orientation == GAUCHE)
-                SDL_BlitSurface(monAnim.animsEntite[monAnim.etat].animationGauche[monAnim.animActuelle],NULL,ecran,&monAnim.position);
-            else if(monAnim.orientation == DROITE)
-                SDL_BlitSurface(monAnim.animsEntite[monAnim.etat].animationDroite[monAnim.animActuelle],NULL,ecran,&monAnim.position);
+        posDest.x=xscroll;
+        posDest.y=yscroll;
 
-            for(i=0;i<NB_ADVERSAIRES_MAX;i++)
+        SDL_BlitSurface(fond, &posDest, ecran, NULL);
+        if(monAnim.position.x>ECRAN_X/2-monAnim.animsEntite[monAnim.etat].animationGauche[0]->w/2
+         &&monAnim.position.x<xMap-ECRAN_X/2-monAnim.animsEntite[monAnim.etat].animationGauche[0]->w/2)
+            position.x=ECRAN_X/2-monAnim.animsEntite[monAnim.etat].animationGauche[0]->w/2;
+        else if(monAnim.position.x>=xMap-ECRAN_X/2-monAnim.animsEntite[monAnim.etat].animationGauche[0]->w/2)
+            position.x=monAnim.position.x-xscroll;//position locale = pGlobale - xscroll
+        else
+            position.x=monAnim.position.x;
+        if(monAnim.position.y>ECRAN_Y/2-monAnim.animsEntite[monAnim.etat].animationGauche[0]->h/2
+         &&monAnim.position.y<yMap-ECRAN_Y/2-monAnim.animsEntite[monAnim.etat].animationGauche[0]->h/2)
+            position.y=ECRAN_Y/2-monAnim.animsEntite[monAnim.etat].animationGauche[0]->h/2;
+        else if(monAnim.position.y>=yMap-ECRAN_Y/2-monAnim.animsEntite[monAnim.etat].animationGauche[0]->h/2)
+            position.y=monAnim.position.y-yscroll;
+        else
+            position.y=monAnim.position.y;
+
+
+        if(position.x>ECRAN_X||position.y>ECRAN_Y)
+            printf("\n\t\t************************************\n\t\t\tSHIIIIIIT %d;%d",position.x,position.y);
+        //printf("\n\tposition Globale : %d;%d (%d;%d en calculant) \tlocale : %d;%d _ ",monAnim.position.x,monAnim.position.y,position.x+xscroll,position.y+yscroll,position.x,position.y);
+
+
+        if(monAnim.orientation == GAUCHE)
+            SDL_BlitSurface(monAnim.animsEntite[monAnim.etat].animationGauche[monAnim.animActuelle],NULL,ecran,&position);
+        else if(monAnim.orientation == DROITE)
+            SDL_BlitSurface(monAnim.animsEntite[monAnim.etat].animationDroite[monAnim.animActuelle],NULL,ecran,&position);
+
+        for(i=0;i<NB_ADVERSAIRES_MAX;i++)
+        {
+
+            if(adversaires[i].vivant==1)
             {
-                if(adversaires[i].vivant==1)
-                {
-                    if(adversaires[i].orientation == GAUCHE)
-                        SDL_BlitSurface(adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle],NULL,ecran,&adversaires[i].position);
-                    else if(adversaires[i].orientation == DROITE)
-                        SDL_BlitSurface(adversaires[i].animsEntite[adversaires[i].etat].animationDroite[adversaires[i].animActuelle],NULL,ecran,&adversaires[i].position);
 
-                }
-                else if (adversaires[i].vivantAvant==1 && adversaires[i].framesEffacement-10 > 0)
+                posTemp.x=adversaires[i].position.x;
+                posTemp.y=adversaires[i].position.y;
+                posTemp.h=adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle]->w;
+                posTemp.w=adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle]->h;
+                if(colliAABBSurfaces(posDest,posTemp)) //on compare les positions globales de l'ecran et du poisson regardé pour voir si on va l'afficher ou pas (optimisatiooon !!)
                 {
-                    adversaires[i].framesEffacement-=10;//on commence à 255, donc ça passe puisque ce sera = à 0 à un moment car 8 est diviseur commun de 128
+                    position.x=adversaires[i].position.x-posDest.x;
+                    position.y=adversaires[i].position.y-posDest.y;
+
+                    if(adversaires[i].orientation == GAUCHE)
+                        SDL_BlitSurface(adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle],NULL,ecran,&position);
+                    else if(adversaires[i].orientation == DROITE)
+                        SDL_BlitSurface(adversaires[i].animsEntite[adversaires[i].etat].animationDroite[adversaires[i].animActuelle],NULL,ecran,&position);
+                }
+            }
+            else if (adversaires[i].vivantAvant==1 && adversaires[i].framesEffacement-10 > 0)
+            {
+                adversaires[i].framesEffacement-=10;//on commence à 255, donc ça passe puisque ce sera = à 0 à un moment car 8 est diviseur commun de 128
+
+                posTemp.x=adversaires[i].position.x;
+                posTemp.y=adversaires[i].position.y;
+                posTemp.h=adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle]->w;
+                posTemp.w=adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle]->h;
+                if(colliAABBSurfaces(posDest,posTemp)) //on compare les positions globales de l'ecran et du poisson regardé pour voir si on va l'afficher ou pas (optimisatiooon !!)
+                {
+                    position.x=adversaires[i].position.x-posDest.x;
+                    position.y=adversaires[i].position.y-posDest.y;
 
                     imgTemp=(SDL_Surface*)malloc(sizeof(SDL_Surface*));
                     if(adversaires[i].orientation == GAUCHE)
@@ -424,51 +497,52 @@ do
                     else if(adversaires[i].orientation == DROITE)
                         imgTemp = SDL_ConvertSurface(adversaires[i].animsEntite[adversaires[i].etat].animationDroite[adversaires[i].animActuelle],adversaires[i].animsEntite[adversaires[i].etat].animationDroite[adversaires[i].animActuelle]->format,adversaires[i].animsEntite[adversaires[i].etat].animationDroite[adversaires[i].animActuelle]->flags);
                     My_SetAlpha32(imgTemp,adversaires[i].framesEffacement);
-                    SDL_BlitSurface(imgTemp,NULL,ecran,&adversaires[i].position);
+                    SDL_BlitSurface(imgTemp,NULL,ecran,&position);
                     SDL_FreeSurface(imgTemp);
                 }
-                if(adversaires[i].vivantAvant==1 && adversaires[i].framesEffacement-10 <= 0)
-                {
-                    printf("\n\t\t\tMOOOOOOOOOOOOOOOORT\n");
-                    adversaires[i].vivantAvant=0;
-                    mesInfos.adversaires[i].vivantAvant = 0;
-                }
-
+            }
+            if(adversaires[i].vivantAvant==1 && adversaires[i].framesEffacement-10 <= 0)
+            {
+                printf("\n\t\t\tMOOOOOOOOOOOOOOOORT\n");
+                adversaires[i].vivantAvant=0;
+                mesInfos.adversaires[i].vivantAvant = 0;
             }
 
-            partieBarre.x = 0;
-            partieBarre.y = 0;
-            partieBarre.w = pointsBoost*barre->w/boostTotal;
-            partieBarre.h = barre->h;
+        }
 
-            position.x = ECRAN_X/2-barre->w/2;
-            position.y = ECRAN_Y-3*barre->h/2;
-            SDL_BlitSurface(fondBarre,NULL,ecran,&position);
-            SDL_BlitSurface(barre,&partieBarre,ecran,&position);
+        partieBarre.x = 0;
+        partieBarre.y = 0;
+        partieBarre.w = pointsBoost*barre->w/boostTotal;
+        partieBarre.h = barre->h;
 
-
-            sprintf(message,"BOOST : ");
-            texte[3] = TTF_RenderText_Blended(policeBoost,message, couleur[BOOST]);
-            position.x = ECRAN_X/2-texte[3]->w/2-texte[3]->w/8*3;
-            position.y += barre->h/2-texte[3]->h/2;
-            SDL_BlitSurface(texte[3],NULL,ecran,&position);
-            position.x += texte[3]->w;
-            SDL_FreeSurface(texte[3]);
+        position.x = ECRAN_X/2-barre->w/2;
+        position.y = ECRAN_Y-3*barre->h/2;
+        SDL_BlitSurface(fondBarre,NULL,ecran,&position);
+        SDL_BlitSurface(barre,&partieBarre,ecran,&position);
 
 
-            sprintf(message,"%d",pointsBoost);
-            texte[3] = TTF_RenderText_Blended(policeBoost,message, couleur[BOOST]);
-            SDL_BlitSurface(texte[3],NULL,ecran,&position);
+        sprintf(message,"BOOST : ");
+        texte[3] = TTF_RenderText_Blended(policeBoost,message, couleur[BOOST]);
+        position.x = ECRAN_X/2-texte[3]->w/2-texte[3]->w/8*3;
+        position.y += barre->h/2-texte[3]->h/2;
+        SDL_BlitSurface(texte[3],NULL,ecran,&position);
+        position.x += texte[3]->w;
+        SDL_FreeSurface(texte[3]);
 
-            SDL_BlitSurface(texte[0], NULL, ecran, 0);
 
-            /***AFFICHER FPS***/
-            afficherFPS(couleur[BLANC],policePetite,ecran);
+        sprintf(message,"%d",pointsBoost);
+        texte[3] = TTF_RenderText_Blended(policeBoost,message, couleur[BOOST]);
+        SDL_BlitSurface(texte[3],NULL,ecran,&position);
 
-            SDL_Flip(ecran);
+        SDL_BlitSurface(texte[0], NULL, ecran, 0);
 
-            SDL_FreeSurface(texte[3]);
-            SDL_FreeSurface(texte[0]);
+        /***AFFICHER FPS***/
+        afficherFPS(couleur[BLANC],policePetite,ecran);
+
+        SDL_Flip(ecran);
+
+        SDL_FreeSurface(texte[3]);
+        SDL_FreeSurface(texte[0]);
 
 
         do{
@@ -608,24 +682,69 @@ if(SDL_GetTicks() > (checkTime + 1000 / fps) )
                     }
                 }
             }
-            positionFond.x = 0;
-            positionFond.y = 0;
 
-            SDL_BlitSurface(fond, NULL, ecran, &positionFond); // Effacer zozor
-            //monAnim.position.x++;
-            for(i=0;i<NB_ADVERSAIRES_MAX;i++)
+
+
+        posDest.x=xscroll;
+        posDest.y=yscroll;
+
+        SDL_BlitSurface(fond, &posDest, ecran, NULL);
+        if(monAnim.position.x>ECRAN_X/2-monAnim.animsEntite[monAnim.etat].animationGauche[0]->w/2
+         &&monAnim.position.x<xMap-ECRAN_X/2-monAnim.animsEntite[monAnim.etat].animationGauche[0]->w/2)
+            position.x=ECRAN_X/2-monAnim.animsEntite[monAnim.etat].animationGauche[0]->w/2;
+        else if(monAnim.position.x>=xMap-ECRAN_X/2-monAnim.animsEntite[monAnim.etat].animationGauche[0]->w/2)
+            position.x=monAnim.position.x-xscroll;//position locale = pGlobale - xscroll
+        else
+            position.x=monAnim.position.x;
+        if(monAnim.position.y>ECRAN_Y/2-monAnim.animsEntite[monAnim.etat].animationGauche[0]->h/2
+         &&monAnim.position.y<yMap-ECRAN_Y/2-monAnim.animsEntite[monAnim.etat].animationGauche[0]->h/2)
+            position.y=ECRAN_Y/2-monAnim.animsEntite[monAnim.etat].animationGauche[0]->h/2;
+        else if(monAnim.position.y>=yMap-ECRAN_Y/2-monAnim.animsEntite[monAnim.etat].animationGauche[0]->h/2)
+            position.y=monAnim.position.y-yscroll;
+        else
+            position.y=monAnim.position.y;
+
+        //printf("\n\tposition Globale : %d;%d (%d;%d en calculant) \tlocale : %d;%d _ ",monAnim.position.x,monAnim.position.y,position.x+xscroll,position.y+yscroll,position.x,position.y);
+
+
+        if(monAnim.orientation == GAUCHE)
+            SDL_BlitSurface(monAnim.animsEntite[monAnim.etat].animationGauche[monAnim.animActuelle],NULL,ecran,&position);
+        else if(monAnim.orientation == DROITE)
+            SDL_BlitSurface(monAnim.animsEntite[monAnim.etat].animationDroite[monAnim.animActuelle],NULL,ecran,&position);
+
+        for(i=0;i<NB_ADVERSAIRES_MAX;i++)
+        {
+
+            if(adversaires[i].vivant==1)
             {
-                if(adversaires[i].vivant==1)
-                {
-                    if(adversaires[i].orientation == GAUCHE)
-                        SDL_BlitSurface(adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle],NULL,ecran,&adversaires[i].position);
-                    else if(adversaires[i].orientation == DROITE)
-                        SDL_BlitSurface(adversaires[i].animsEntite[adversaires[i].etat].animationDroite[adversaires[i].animActuelle],NULL,ecran,&adversaires[i].position);
 
-                }
-                else if (adversaires[i].vivantAvant==1 && adversaires[i].framesEffacement-10 > 0)
+                posTemp.x=adversaires[i].position.x;
+                posTemp.y=adversaires[i].position.y;
+                posTemp.h=adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle]->w;
+                posTemp.w=adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle]->h;
+                if(colliAABBSurfaces(posDest,posTemp)) //on compare les positions globales de l'ecran et du poisson regardé pour voir si on va l'afficher ou pas (optimisatiooon !!)
                 {
-                    adversaires[i].framesEffacement-=10;//on commence à 255, donc ça passe puisque ce sera = à 0 à un moment car 8 est diviseur commun de 128
+                    position.x=adversaires[i].position.x-posDest.x;
+                    position.y=adversaires[i].position.y-posDest.y;
+
+                    if(adversaires[i].orientation == GAUCHE)
+                        SDL_BlitSurface(adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle],NULL,ecran,&position);
+                    else if(adversaires[i].orientation == DROITE)
+                        SDL_BlitSurface(adversaires[i].animsEntite[adversaires[i].etat].animationDroite[adversaires[i].animActuelle],NULL,ecran,&position);
+                }
+            }
+            else if (adversaires[i].vivantAvant==1 && adversaires[i].framesEffacement-10 > 0)
+            {
+                adversaires[i].framesEffacement-=10;//on commence à 255, donc ça passe puisque ce sera = à 0 à un moment car 8 est diviseur commun de 128
+
+                posTemp.x=adversaires[i].position.x;
+                posTemp.y=adversaires[i].position.y;
+                posTemp.h=adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle]->w;
+                posTemp.w=adversaires[i].animsEntite[adversaires[i].etat].animationGauche[adversaires[i].animActuelle]->h;
+                if(colliAABBSurfaces(posDest,posTemp)) //on compare les positions globales de l'ecran et du poisson regardé pour voir si on va l'afficher ou pas (optimisatiooon !!)
+                {
+                    position.x=adversaires[i].position.x-posDest.x;
+                    position.y=adversaires[i].position.y-posDest.y;
 
                     imgTemp=(SDL_Surface*)malloc(sizeof(SDL_Surface*));
                     if(adversaires[i].orientation == GAUCHE)
@@ -633,22 +752,18 @@ if(SDL_GetTicks() > (checkTime + 1000 / fps) )
                     else if(adversaires[i].orientation == DROITE)
                         imgTemp = SDL_ConvertSurface(adversaires[i].animsEntite[adversaires[i].etat].animationDroite[adversaires[i].animActuelle],adversaires[i].animsEntite[adversaires[i].etat].animationDroite[adversaires[i].animActuelle]->format,adversaires[i].animsEntite[adversaires[i].etat].animationDroite[adversaires[i].animActuelle]->flags);
                     My_SetAlpha32(imgTemp,adversaires[i].framesEffacement);
-                    SDL_BlitSurface(imgTemp,NULL,ecran,&adversaires[i].position);
+                    SDL_BlitSurface(imgTemp,NULL,ecran,&position);
                     SDL_FreeSurface(imgTemp);
                 }
-                if(adversaires[i].vivantAvant==1 && adversaires[i].framesEffacement-10 <= 0)
-                {
-                    printf("\n\t\t\tMOOOOOOOOOOOOOOOORT\n");
-                    adversaires[i].vivantAvant=0;
-                    mesInfos.adversaires[i].vivantAvant = 0;
-                }
+            }
+            if(adversaires[i].vivantAvant==1 && adversaires[i].framesEffacement-10 <= 0)
+            {
+                printf("\n\t\t\tMOOOOOOOOOOOOOOOORT\n");
+                adversaires[i].vivantAvant=0;
+                mesInfos.adversaires[i].vivantAvant = 0;
             }
 
-            if(monAnim.orientation == GAUCHE)
-                SDL_BlitSurface(monAnim.animsEntite[monAnim.etat].animationGauche[monAnim.animActuelle],NULL,ecran,&monAnim.position);
-            else if(monAnim.orientation == DROITE)
-                SDL_BlitSurface(monAnim.animsEntite[monAnim.etat].animationDroite[monAnim.animActuelle],NULL,ecran,&monAnim.position);
-
+        }
 
             partieBarre.x = 0;
             partieBarre.y = 0;
@@ -827,14 +942,18 @@ if(SDL_GetTicks() > (checkTime + 1000 / fps) )
     printf("libéré !");
     for(j=0;j<2;j++)
         for(i=0;i<2;i++)
-            freePoly(&polyBase[j][i]);
+        {
+            printf("poly%d ",i);
+            freePoly(&polyBase[j][i],1);
+            printf("OK");
+        }
     printf("1");
-    freePoly(&monAnim.polyPoisson[DROITE]);
-    freePoly(&monAnim.polyPoisson[GAUCHE]);
+    freePoly(&monAnim.polyPoisson[DROITE],0);
+    freePoly(&monAnim.polyPoisson[GAUCHE],0);
     printf("libéré !");
     for(i=0;i<NB_ADVERSAIRES_MAX;i++)
         for(j=0;j<2;j++)
-            freePoly(&adversaires[i].polyPoisson[j]);
+            freePoly(&adversaires[i].polyPoisson[j],0);
 
     printf("libéré !");
 
@@ -910,6 +1029,7 @@ void* boucle(void *infos)
         if(newtime[2] - lasttime[2] > 5*1/ZOOM_X)   //mouvement  _   Ralentit le mouvement lorsque c'est supérieur au DELAI pour FPS
         {
             update(&mesInfos->monAnim);
+            mooveMap(mesInfos->monAnim,&mesInfos->xscroll,&mesInfos->yscroll);
             avance(&mesInfos->monAnim);
             //printf("\nMON ANIM\n");
             //afficherPts(mesInfos->monAnim.polyPoisson);
@@ -1068,14 +1188,14 @@ void update(Poissons *monAnim)
 
     if(monAnim->mouvement[DROITE]==1)
     {
-        if(monAnim->position.x+monAnim->animsEntite[0].animationGauche[0]->w+monAnim->vitesse+monAnim->mouvement[ACCELERE]<ECRAN_X)
+        if(monAnim->position.x+monAnim->animsEntite[0].animationGauche[0]->w+monAnim->vitesse+monAnim->mouvement[ACCELERE]<xMap)
             monAnim->position.x+=(monAnim->vitesse+monAnim->mouvement[ACCELERE]);
-        else if(monAnim->position.x+monAnim->animsEntite[0].animationGauche[0]->w+monAnim->vitesse<ECRAN_X)
+        else if(monAnim->position.x+monAnim->animsEntite[0].animationGauche[0]->w+monAnim->vitesse<xMap)
             monAnim->position.x+=(monAnim->vitesse);
 
         monAnim->orientation = DROITE;
     }
-    else if (monAnim->mouvement[GAUCHE]==1)
+    /*else */if (monAnim->mouvement[GAUCHE]==1)
     {
         if(monAnim->position.x-monAnim->vitesse-monAnim->mouvement[ACCELERE]>0)
             monAnim->position.x-=(monAnim->vitesse+monAnim->mouvement[ACCELERE]);
@@ -1086,12 +1206,12 @@ void update(Poissons *monAnim)
     }
     if(monAnim->mouvement[BAS]==1)
     {
-        if(monAnim->position.y+monAnim->animsEntite[0].animationGauche[0]->h+monAnim->vitesse+monAnim->mouvement[ACCELERE]<ECRAN_Y)
+        if(monAnim->position.y+monAnim->animsEntite[0].animationGauche[0]->h+monAnim->vitesse+monAnim->mouvement[ACCELERE]<yMap)
             monAnim->position.y+=(monAnim->vitesse+monAnim->mouvement[ACCELERE]);
-        else if(monAnim->position.y+monAnim->animsEntite[0].animationGauche[0]->h+monAnim->vitesse<ECRAN_Y)
+        else if(monAnim->position.y+monAnim->animsEntite[0].animationGauche[0]->h+monAnim->vitesse<yMap)
             monAnim->position.y+=(monAnim->vitesse);
     }
-    else if (monAnim->mouvement[HAUT]==1)
+    /*else*/ if (monAnim->mouvement[HAUT]==1)
     {
         if(monAnim->position.y-monAnim->vitesse-monAnim->mouvement[ACCELERE]>0)
             monAnim->position.y-=(monAnim->vitesse+monAnim->mouvement[ACCELERE]);
@@ -1466,8 +1586,8 @@ void spawnPoissons (Poissons *monAnim,AnimPoissons monPoisson[2],SDL_Surface *ec
         monAnim->rectangle = SDL_CreateRGBSurface(SDL_HWSURFACE, monAnim->animsEntite[0].animationGauche[0]->w, monAnim->animsEntite[0].animationGauche[0]->h, 32, 0, 0, 0, 0);
         SDL_FillRect(monAnim->rectangle, NULL, SDL_MapRGB(ecran->format, 255, 145, 7));
 
-        monAnim->position.x = ECRAN_X/2-monAnim->animsEntite[0].animationGauche[0]->w/2;
-        monAnim->position.y = ECRAN_Y/2-monAnim->animsEntite[0].animationGauche[0]->h/2;
+        monAnim->position.x = xMap/2-monAnim->animsEntite[0].animationGauche[0]->w/2;
+        monAnim->position.y = yMap/2-monAnim->animsEntite[0].animationGauche[0]->h/2;
         monAnim->oldPos.x = monAnim->position.x;
         monAnim->oldPos.y = monAnim->position.y;
 
@@ -1522,11 +1642,11 @@ void spawnPoissons (Poissons *monAnim,AnimPoissons monPoisson[2],SDL_Surface *ec
         }
         else                //1 chance sur 2 d'être à droite
         {
-            monAnim->position.x = ECRAN_X-monAnim->animsEntite[0].animationGauche[0]->w;
+            monAnim->position.x = xMap-monAnim->animsEntite[0].animationGauche[0]->w;
             monAnim->mouvement[GAUCHE] = 1;
         }
 
-        monAnim->position.y = (rand()%(ECRAN_Y-monAnim->animsEntite[0].animationGauche[0]->h+1)+1);
+        monAnim->position.y = (rand()%(yMap-monAnim->animsEntite[0].animationGauche[0]->h+1)+1);
 
         monAnim->oldPos.x = monAnim->position.x;
         monAnim->oldPos.y = monAnim->position.y;
@@ -1659,228 +1779,27 @@ void putpixel(SDL_Surface *surface, int x, int y, Uint32 pixel)
     }
 }
 
+void mooveMap(Poissons monAnim, int *xscroll, int*yscroll)
+{/*
+    if(monAnim.mouvement[GAUCHE])
+        *xscroll-=(monAnim.vitesse+monAnim.mouvement[ACCELERE]);
+    if(monAnim.mouvement[DROITE])
+        *xscroll+=(monAnim.vitesse+monAnim.mouvement[ACCELERE]);
+    if(monAnim.mouvement[HAUT])
+        *yscroll-=(monAnim.vitesse+monAnim.mouvement[ACCELERE]);
+    if(monAnim.mouvement[BAS])
+        *yscroll+=(monAnim.vitesse+monAnim.mouvement[ACCELERE]);*/
+    *xscroll=monAnim.position.x+monAnim.animsEntite[0].animationDroite[0]->w/2-ECRAN_X/2;
+    *yscroll=monAnim.position.y+monAnim.animsEntite[0].animationDroite[0]->h/2-ECRAN_Y/2;
 
 
 
-
-
-/*
-
-
-void spawn(Poissons *monAnim,SDL_Surface *ecran,int taille)
-{
-    int j=0,i=0;
-
-    taille*=TAUX_GROSSEUR;
-
-    monAnim->grosseur = ((double)(rand() % taille)+1)/100;
-    monAnim->poids = monAnim->grosseur*100;
-
-
-    //printf("\ngrosseur : %f\tpoids : %d\n",monAnim->grosseur,monAnim->poids);
-    monAnim->vitesse=((rand() % (VITESSE_MAX - 3 + 1)) + 3)*ZOOM_X;
-    monAnim->etat = BOUGE;
-
-    monAnim->vivant = 1;
-    monAnim->vivantAvant = 0;
-
-
-    for(j=0;j<2;j++)
-    {
-        for(i=0;i<monAnim->animsEntite[j].anims_totales;i++)
-        {//rotozoomSurface(monAnim->animsEntite[j].animBase[i],0.0,monAnim->grosseur,NULL);
-            //SDL_FreeSurface(monAnim->animsEntite[j].anim[i]);
-
-            monAnim->animsEntite[j].anim[i] = zoomSurface(monAnim->animsEntite[j].animBase[i],monAnim->grosseur,monAnim->grosseur,0);
-            monAnim->animsEntite[j].anim[i] = SDL_DisplayFormatAlpha(monAnim->animsEntite[j].anim[i]);
-            //monAnim->animsEntite[j].anim[i]=monAnim->animsEntite[j].animBase[i];
-            if(i==0 && j==0)
-            {
-                monAnim->animsEntite[BOUGEPAS].taille_X = monAnim->animsEntite[BOUGEPAS].anim[0]->w;
-                monAnim->animsEntite[BOUGEPAS].taille_Y = monAnim->animsEntite[BOUGEPAS].anim[0]->h;
-            }
-            if(i==0 && j==1)
-            {
-                monAnim->animsEntite[BOUGE].taille_X = monAnim->animsEntite[BOUGE].anim[0]->w;
-                monAnim->animsEntite[BOUGE].taille_Y = monAnim->animsEntite[BOUGE].anim[0]->h;
-            }
-            //printf("\n\n\tanim %d : [%d;%d]\n\n\n",i,monAnim->animsEntite[j].anim[i]->w,monAnim->animsEntite[j].anim[i]->h);
-        }
-    }
-
-    monAnim->rectangle = SDL_CreateRGBSurface(SDL_HWSURFACE, monAnim->animsEntite[0].taille_X, monAnim->animsEntite[0].taille_Y, 32, 0, 0, 0, 0);
-    SDL_FillRect(monAnim->rectangle, NULL, SDL_MapRGB(ecran->format, 255, 145, 7));
-
-    if(monAnim->position.x-ECRAN_X/2<0) //si plus proche de la gauche = va vers la droite et inversement
-        monAnim->mouvement[AVANCE] = 1;
-    else
-        monAnim->mouvement[RECULE] = 1;
-
-    if(rand()%2 == 0)
-        monAnim->position.x = 0;
-    else
-        monAnim->position.x = ECRAN_X-monAnim->animsEntite[0].taille_X;
-
-
-    monAnim->position.y = (rand()%(ECRAN_Y-monAnim->animsEntite[0].taille_Y));
-
-    monAnim->oldPos.x = monAnim->position.x;
-    monAnim->oldPos.y = monAnim->position.y;
+    if(*xscroll<0)
+        *xscroll=0;
+    if((*xscroll)+ECRAN_X>xMap)
+        (*xscroll)=xMap-ECRAN_X;
+    if(*yscroll<0)
+        *yscroll=0;
+    if(*yscroll+ECRAN_Y>yMap)
+        *yscroll=yMap-ECRAN_Y;
 }
-
-void initAnim(Poissons *monAnim,SDL_Surface *ecran,int sortePoisson,int *ajoutAdversaire)
-{
-    int i=0,j=0;
-    char nomImg[100];
-    int adversaire = 0;
-    int img[4];
-    SDL_Surface *imgTemp=NULL;
-
-    if(sortePoisson == 6)
-        adversaire=1;
-
-
-    if(adversaire==1)
-    {
-        if(*ajoutAdversaire==1)
-        {
-            monAnim->vivant = 1;
-            monAnim->vivantAvant = 0;
-            *ajoutAdversaire = 0;
-        }
-        else
-        {
-            monAnim->vivant = 0;
-            monAnim->vivantAvant = 0;
-        }
-    }
-    else
-    {
-        monAnim->vivant = 1;
-        monAnim->vivantAvant = 0;
-    }
-
-
-    monAnim->tempsActuel = 0;
-    monAnim->tempsPasse = 0;
-
-    if(monAnim->charge == 0)
-    {
-        //relève le nombre de sprits
-        FILE *fichier = NULL;
-        fichier=fopen("Taille.txt","r");
-        fscanf(fichier,"ImgX %d\nImgY %d\nImgX %d\nImgY %d",&img[0],&img[1],&img[2],&img[3]);
-        fclose(fichier);
-
-        monAnim->animsEntite[BOUGEPAS].anims_totales = img[0]*img[1];
-        monAnim->animsEntite[BOUGE].anims_totales = img[2]*img[3];
-
-        monAnim->animsEntite[BOUGEPAS].anim = (SDL_Surface**)malloc(monAnim->animsEntite[BOUGEPAS].anims_totales * sizeof(SDL_Surface*));
-        monAnim->animsEntite[BOUGE].anim = (SDL_Surface**)malloc(monAnim->animsEntite[BOUGE].anims_totales * sizeof(SDL_Surface*));
-
-        monAnim->animsEntite[BOUGEPAS].animBase = (SDL_Surface**)malloc(monAnim->animsEntite[BOUGEPAS].anims_totales * sizeof(SDL_Surface*));
-        monAnim->animsEntite[BOUGE].animBase = (SDL_Surface**)malloc(monAnim->animsEntite[BOUGE].anims_totales * sizeof(SDL_Surface*));
-
-        monAnim->animsEntite[0].anims_X = img[0];
-        monAnim->animsEntite[0].anims_Y = img[1];
-        monAnim->animsEntite[1].anims_X = img[2];
-        monAnim->animsEntite[1].anims_Y = img[3];
-        printf("\n\n\t\t\tchargeee\n");
-        monAnim->charge = 1;
-    }
-
-    monAnim->animActuelle = 0;
-    for(i=0;i<5;i++)
-    {
-        monAnim->mouvement[i] = 0;
-        monAnim->lastMouvement[i] = 0;
-    }
-
-        //nombreMystere = (rand() % (MAX - MIN + 1)) + MIN;                                      => (non c'est juste que le noir c'est le perso principal xD)
-    for(j=0;j<2;j++)
-    {
-
-        for(i=0;i<monAnim->animsEntite[j].anims_totales;i++)
-        {
-            if(j==BOUGEPAS)
-                sprintf(nomImg, "Images/Poisson_%d/Poissons_bougePas/Poissons_bougePas_%d.png",sortePoisson,i);
-            else
-                sprintf(nomImg, "Images/Poisson_%d/Poissons_bouge/Poissons_bouge_%d.png",sortePoisson,i);
-
-            printf("%s\n",nomImg);
-            imgTemp = IMG_Load(nomImg);
-            imgTemp = SDL_DisplayFormatAlpha(imgTemp);//on a le droit ??
-            monAnim->animsEntite[j].animBase[i] = zoomSurface(imgTemp,ZOOM_X,ZOOM_Y,0);
-
-
-            monAnim->animsEntite[j].animBase[i] = IMG_Load(nomImg);   //on ouvre l'image avec le nom final
-            monAnim->animsEntite[j].animBase[i] = SDL_DisplayFormatAlpha(monAnim->animsEntite[j].animBase[i]);
-            imgTemp = zoomSurface(monAnim->animsEntite[j].animBase[i],ZOOM_X,ZOOM_Y,0);
-            monAnim->animsEntite[j].animBase[i] = imgTemp;
-            //printf("imgBase[%d][%d] = %d",j,i,monAnim->animsEntite[j].animBase[i]);
-            SDL_FreeSurface(imgTemp);
-            if(monAnim->animsEntite[j].animBase[i] == NULL)
-                printf("fail");
-
-        }
-    }
-
-
-        //rand()/(double)RAND_MAX ) * (b-a) + a
-        //(double)rand()/(RAND_MAX)*(max-min)+min;
-
-
-    if(adversaire==1 && monAnim->vivant==1)
-    {
-        spawn(monAnim,ecran,1,TAILLE_INITIALE);
-        printf("\n\tspawné !");
-    }
-    else
-    {
-        printf("\n\tchargement de notre poisson ...");
-        monAnim->poids = TAILLE_INITIALE;//pour 0.3 : 30g (ouais g parce que j'avais la flemme de faire un truc logique xD)
-        monAnim->grosseur = (double)(monAnim->poids)/100;
-
-        monAnim->vitesse=6*ZOOM_X;
-        //printf("\n\n\t\t\tgros poisson qui mesure %f !!!!",monAnim->grosseur);
-        monAnim->etat = BOUGEPAS;
-        //SDL_Delay(1000);
-
-        for(j=0;j<2;j++)
-        {
-            for(i=0;i<monAnim->animsEntite[j].anims_totales;i++)
-            {
-                //SDL_FreeSurface(monAnim->animsEntite[j].anim[i]);
-
-                //SDL_Delay(500);
-
-                monAnim->animsEntite[j].anim[i] = zoomSurface(monAnim->animsEntite[j].animBase[i],monAnim->grosseur,monAnim->grosseur,0);
-                if(i==0 && j==0)
-                {
-                    monAnim->animsEntite[BOUGEPAS].taille_X = monAnim->animsEntite[BOUGEPAS].anim[0]->w;
-                    monAnim->animsEntite[BOUGEPAS].taille_Y = monAnim->animsEntite[BOUGEPAS].anim[0]->h;
-                }
-                if(i==0 && j==1)
-                {
-                    monAnim->animsEntite[BOUGE].taille_X = monAnim->animsEntite[BOUGE].anim[0]->w;
-                    monAnim->animsEntite[BOUGE].taille_Y = monAnim->animsEntite[BOUGE].anim[0]->h;
-                }
-                //printf("\n\n\tanim %d : [%d;%d]\n\n\n",i,monAnim->animsEntite[j].anim[i]->w,monAnim->animsEntite[j].anim[i]->h);
-            }
-        }
-        printf("\n\tchargé !");
-
-
-        monAnim->rectangle = SDL_CreateRGBSurface(SDL_HWSURFACE, monAnim->animsEntite[0].taille_X, monAnim->animsEntite[0].taille_Y, 32, 0, 0, 0, 0);
-        SDL_FillRect(monAnim->rectangle, NULL, SDL_MapRGB(ecran->format, 255, 145, 7));
-
-    }
-
-
-
-    monAnim->temps = 37;
-    if(sortePoisson >=6)
-        monAnim->temps = 70;
-
-}*/
-

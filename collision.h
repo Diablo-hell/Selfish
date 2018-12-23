@@ -4,6 +4,7 @@
 #include "variables.h"
 
 int colliAABB (Poissons poisson_1,Poissons poisson_2);
+int colliAABBSurfaces (SDL_Rect surf1,SDL_Rect surf2);
 int collisionPolyPoly(Polygone poly_1,Polygone poly_2);
 void avance (Poissons *monPoisson);
 int CollisionSegmentSegment (EqDroite d1,EqDroite d2,int print);
@@ -12,7 +13,7 @@ void afficherPts (Polygone poly);
 void calculVecteurEquaPoly (Polygone *poly);
 int collisionPolyPolySimple(Poissons poisson_1,Poissons poisson_2);
 int colliPolyPolySegments(Polygone poly_1,Polygone poly_2);
-void freePoly(Polygone *poly);
+void freePoly(Polygone *poly,int polybase);
 void initPoly(Polygone geomPoisson[2],int direction);
 void attribuerPoly (Polygone geomPoisson[2],Polygone *poly,int type);
 void adaptPoly(Polygone geomPoisson[2][2],Polygone poly[2],int type,double grosseur);

@@ -13,6 +13,7 @@ void jeu(SDL_Surface *ecran,Audio *sons);
 void updateAdv(Poissons *monAnim);
 void changeDirection (Poissons *monAnim);
 void nouveau(int *ajoutAdversaire);
+void mooveMap(Poissons monAnim, int *xscroll, int*yscroll);
 
 
 void My_SetAlpha32(SDL_Surface* src, const unsigned char val);
